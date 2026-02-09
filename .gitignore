@@ -1,0 +1,41 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Distribution / packaging
+uv.lock
+
+# Unit test / coverage reports
+htmlcov/
+.coverage
+.coverage.*
+.cache
+.hypothesis/
+.pytest_cache/
+
+# Environments
+.env
+.venv
+
+# IDEs
+.vscode/
+.claude/
+
+# mypy
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# ruff
+.ruff_cache/
+
+# Double Post user data (don't commit personal financial data)
+data/inputs/
+data/outputs/
+*.csv
+!data/examples/*.csv
+!tests/fixtures/*.csv
+
+# Config files with user settings
+*.local.toml
