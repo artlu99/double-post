@@ -98,23 +98,19 @@ class AliasDatabase:
             raise ValueError("Alias cannot be empty")
 
         # Check if alias exists
-        existing = self._execute_query(
-            "SELECT primary_name FROM aliases WHERE alias = ?",
-            (alias,)
-        )
+        existing = self._execute_query("SELECT primary_name FROM aliases WHERE alias = ?", (alias,))
 
         if existing:
             # Update existing alias
             self.conn.execute(
-                "UPDATE aliases SET primary_name = ? WHERE alias = ?",
-                (primary_name, alias)
+                "UPDATE aliases SET primary_name = ? WHERE alias = ?", (primary_name, alias)
             )
         else:
             # Insert new alias
             self.conn.execute(
                 """INSERT INTO aliases (primary_name, alias, created_at, usage_count)
                    VALUES (?, ?, ?, 0)""",
-                (primary_name, alias, datetime.now().isoformat())
+                (primary_name, alias, datetime.now().isoformat()),
             )
 
         self.conn.commit()
@@ -133,8 +129,7 @@ class AliasDatabase:
         alias = alias.strip().lower()
 
         result = self._execute_query(
-            "SELECT primary_name, usage_count FROM aliases WHERE alias = ?",
-            (alias,)
+            "SELECT primary_name, usage_count FROM aliases WHERE alias = ?", (alias,)
         )
 
         if result:
@@ -142,8 +137,7 @@ class AliasDatabase:
             # Increment usage count
             new_count = result[0]["usage_count"] + 1
             self.conn.execute(
-                "UPDATE aliases SET usage_count = ? WHERE alias = ?",
-                (new_count, alias)
+                "UPDATE aliases SET usage_count = ? WHERE alias = ?", (new_count, alias)
             )
             self.conn.commit()
             return primary_name
@@ -183,10 +177,7 @@ class AliasDatabase:
         """
         alias = alias.strip().lower()
 
-        cursor = self.conn.execute(
-            "DELETE FROM aliases WHERE alias = ?",
-            (alias,)
-        )
+        cursor = self.conn.execute("DELETE FROM aliases WHERE alias = ?", (alias,))
         self.conn.commit()
 
         return cursor.rowcount > 0
@@ -232,4 +223,28 @@ class AliasDatabase:
         self.close()
 
 
-__all__ = ["MerchantAlias", "AliasDatabase"]
+# Default alias mappings seeded into new databases
+# Format: {primary_name: [alias1, alias2, ...]}
+DEFAULT_ALIASES: dict[str, list[str]] = {
+    "MTA card swipe": ["mta*nyct paygo"],
+}
+
+
+def seed_defaults(db: AliasDatabase) -> None:
+    """Seed database with default alias mappings.
+
+    Skips aliases that already exist (idempotent).
+
+    Args:
+        db: AliasDatabase instance to seed
+    """
+    for primary_name, aliases in DEFAULT_ALIASES.items():
+        for alias in aliases:
+            try:
+                db.add_alias(primary_name, alias)
+            except ValueError:
+                # Skip invalid entries (empty strings, etc.)
+                continue
+
+
+__all__ = ["MerchantAlias", "AliasDatabase", "DEFAULT_ALIASES", "seed_defaults"]

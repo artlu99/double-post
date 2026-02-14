@@ -14,13 +14,29 @@ class TestSignNormalization:
 
     def test_no_normalization_when_conventions_match(self):
         """Test that no changes are made when both use same convention."""
-        source_df = pd.DataFrame([
-            {"date_clean": datetime(2024, 1, 15), "amount_clean": Decimal("-100.00"), "description_clean": "coffee"},
-            {"date_clean": datetime(2024, 1, 16), "amount_clean": Decimal("-50.00"), "description_clean": "lunch"},
-        ])
-        target_df = pd.DataFrame([
-            {"date_clean": datetime(2024, 1, 15), "amount_clean": Decimal("-100.00"), "description_clean": "coffee"},
-        ])
+        source_df = pd.DataFrame(
+            [
+                {
+                    "date_clean": datetime(2024, 1, 15),
+                    "amount_clean": Decimal("-100.00"),
+                    "description_clean": "coffee",
+                },
+                {
+                    "date_clean": datetime(2024, 1, 16),
+                    "amount_clean": Decimal("-50.00"),
+                    "description_clean": "lunch",
+                },
+            ]
+        )
+        target_df = pd.DataFrame(
+            [
+                {
+                    "date_clean": datetime(2024, 1, 15),
+                    "amount_clean": Decimal("-100.00"),
+                    "description_clean": "coffee",
+                },
+            ]
+        )
 
         source_convention = {"debit_sign": "negative", "negative_count": 2}
         target_convention = {"debit_sign": "negative", "negative_count": 1}
@@ -35,12 +51,24 @@ class TestSignNormalization:
 
     def test_normalize_opposite_conventions(self):
         """Test that target signs are flipped when conventions differ."""
-        source_df = pd.DataFrame([
-            {"date_clean": datetime(2024, 1, 15), "amount_clean": Decimal("-100.00"), "description_clean": "coffee"},
-        ])
-        target_df = pd.DataFrame([
-            {"date_clean": datetime(2024, 1, 15), "amount_clean": Decimal("100.00"), "description_clean": "coffee"},
-        ])
+        source_df = pd.DataFrame(
+            [
+                {
+                    "date_clean": datetime(2024, 1, 15),
+                    "amount_clean": Decimal("-100.00"),
+                    "description_clean": "coffee",
+                },
+            ]
+        )
+        target_df = pd.DataFrame(
+            [
+                {
+                    "date_clean": datetime(2024, 1, 15),
+                    "amount_clean": Decimal("100.00"),
+                    "description_clean": "coffee",
+                },
+            ]
+        )
 
         # Source uses "-" for debits, target uses "+" for debits
         source_convention = {"debit_sign": "negative", "negative_count": 1}
@@ -57,12 +85,24 @@ class TestSignNormalization:
 
     def test_normalize_with_positive_debits_to_negative(self):
         """Test normalizing target with positive debits to negative convention."""
-        source_df = pd.DataFrame([
-            {"date_clean": datetime(2024, 1, 15), "amount_clean": Decimal("-62.50"), "description_clean": "noodles"},
-        ])
-        target_df = pd.DataFrame([
-            {"date_clean": datetime(2024, 1, 15), "amount_clean": Decimal("-62.50"), "description_clean": "noodles"},
-        ])
+        source_df = pd.DataFrame(
+            [
+                {
+                    "date_clean": datetime(2024, 1, 15),
+                    "amount_clean": Decimal("-62.50"),
+                    "description_clean": "noodles",
+                },
+            ]
+        )
+        target_df = pd.DataFrame(
+            [
+                {
+                    "date_clean": datetime(2024, 1, 15),
+                    "amount_clean": Decimal("-62.50"),
+                    "description_clean": "noodles",
+                },
+            ]
+        )
 
         # Source: negative = debits, Target: positive = debits (need to flip target)
         source_convention = {"debit_sign": "negative", "negative_count": 1}
@@ -77,12 +117,24 @@ class TestSignNormalization:
 
     def test_normalize_with_negative_debits_to_positive(self):
         """Test normalizing target with negative debits to positive convention."""
-        source_df = pd.DataFrame([
-            {"date_clean": datetime(2024, 1, 15), "amount_clean": Decimal("62.50"), "description_clean": "noodles"},
-        ])
-        target_df = pd.DataFrame([
-            {"date_clean": datetime(2024, 1, 15), "amount_clean": Decimal("62.50"), "description_clean": "noodles"},
-        ])
+        source_df = pd.DataFrame(
+            [
+                {
+                    "date_clean": datetime(2024, 1, 15),
+                    "amount_clean": Decimal("62.50"),
+                    "description_clean": "noodles",
+                },
+            ]
+        )
+        target_df = pd.DataFrame(
+            [
+                {
+                    "date_clean": datetime(2024, 1, 15),
+                    "amount_clean": Decimal("62.50"),
+                    "description_clean": "noodles",
+                },
+            ]
+        )
 
         # Source: positive = debits, Target: negative = debits (need to flip target)
         source_convention = {"debit_sign": "positive", "positive_count": 1}
@@ -97,12 +149,24 @@ class TestSignNormalization:
 
     def test_chase_format_no_normalization(self):
         """Test that Chase format (separate debit/credit columns) is not normalized."""
-        source_df = pd.DataFrame([
-            {"date_clean": datetime(2024, 1, 15), "amount_clean": Decimal("100.00"), "description_clean": "coffee"},
-        ])
-        target_df = pd.DataFrame([
-            {"date_clean": datetime(2024, 1, 15), "amount_clean": Decimal("100.00"), "description_clean": "coffee"},
-        ])
+        source_df = pd.DataFrame(
+            [
+                {
+                    "date_clean": datetime(2024, 1, 15),
+                    "amount_clean": Decimal("100.00"),
+                    "description_clean": "coffee",
+                },
+            ]
+        )
+        target_df = pd.DataFrame(
+            [
+                {
+                    "date_clean": datetime(2024, 1, 15),
+                    "amount_clean": Decimal("100.00"),
+                    "description_clean": "coffee",
+                },
+            ]
+        )
 
         # Chase format uses debit_col
         source_convention = {"debit_sign": "negative", "negative_count": 1}
@@ -117,12 +181,24 @@ class TestSignNormalization:
 
     def test_normalize_preserves_nan_values(self):
         """Test that NaN values are preserved during normalization."""
-        source_df = pd.DataFrame([
-            {"date_clean": datetime(2024, 1, 15), "amount_clean": Decimal("-100.00"), "description_clean": "coffee"},
-        ])
-        target_df = pd.DataFrame([
-            {"date_clean": datetime(2024, 1, 16), "amount_clean": None, "description_clean": "unknown"},
-        ])
+        source_df = pd.DataFrame(
+            [
+                {
+                    "date_clean": datetime(2024, 1, 15),
+                    "amount_clean": Decimal("-100.00"),
+                    "description_clean": "coffee",
+                },
+            ]
+        )
+        target_df = pd.DataFrame(
+            [
+                {
+                    "date_clean": datetime(2024, 1, 16),
+                    "amount_clean": None,
+                    "description_clean": "unknown",
+                },
+            ]
+        )
 
         source_convention = {"debit_sign": "negative", "negative_count": 1}
         target_convention = {"debit_sign": "positive", "positive_count": 0}
@@ -136,14 +212,34 @@ class TestSignNormalization:
 
     def test_normalize_multiple_records(self):
         """Test normalization with multiple records."""
-        source_df = pd.DataFrame([
-            {"date_clean": datetime(2024, 1, 15), "amount_clean": Decimal("-100.00"), "description_clean": "coffee"},
-            {"date_clean": datetime(2024, 1, 16), "amount_clean": Decimal("-50.00"), "description_clean": "lunch"},
-        ])
-        target_df = pd.DataFrame([
-            {"date_clean": datetime(2024, 1, 15), "amount_clean": Decimal("100.00"), "description_clean": "coffee"},
-            {"date_clean": datetime(2024, 1, 16), "amount_clean": Decimal("50.00"), "description_clean": "lunch"},
-        ])
+        source_df = pd.DataFrame(
+            [
+                {
+                    "date_clean": datetime(2024, 1, 15),
+                    "amount_clean": Decimal("-100.00"),
+                    "description_clean": "coffee",
+                },
+                {
+                    "date_clean": datetime(2024, 1, 16),
+                    "amount_clean": Decimal("-50.00"),
+                    "description_clean": "lunch",
+                },
+            ]
+        )
+        target_df = pd.DataFrame(
+            [
+                {
+                    "date_clean": datetime(2024, 1, 15),
+                    "amount_clean": Decimal("100.00"),
+                    "description_clean": "coffee",
+                },
+                {
+                    "date_clean": datetime(2024, 1, 16),
+                    "amount_clean": Decimal("50.00"),
+                    "description_clean": "lunch",
+                },
+            ]
+        )
 
         source_convention = {"debit_sign": "negative", "negative_count": 2}
         target_convention = {"debit_sign": "positive", "positive_count": 2}

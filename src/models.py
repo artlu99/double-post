@@ -41,10 +41,10 @@ class MatchDecision(Enum):
 class ConfidenceTier(str, Enum):
     """Confidence tier classification for matches."""
 
-    HIGH = "high"      # ≥ 0.9
+    HIGH = "high"  # ≥ 0.9
     MEDIUM = "medium"  # 0.5 - 0.9
-    LOW = "low"        # 0.1 - 0.5
-    NONE = "none"      # < 0.1
+    LOW = "low"  # 0.1 - 0.5
+    NONE = "none"  # < 0.1
 
 
 @dataclass

@@ -116,7 +116,9 @@ class ManualMatchScreen(Screen):
             return all_targets
 
         # Filter out already-matched targets
-        matched_targets = {m.target_idx for m in self.match_result.matches if m.target_idx is not None}
+        matched_targets = {
+            m.target_idx for m in self.match_result.matches if m.target_idx is not None
+        }
         available_targets = [idx for idx in all_targets if idx not in matched_targets]
 
         return available_targets
@@ -170,7 +172,9 @@ class ManualMatchScreen(Screen):
             # For now, just pop the screen
             self.app.pop_screen()
         else:
-            self.app.notify("No target selected - use arrow keys to select a row", severity="warning")
+            self.app.notify(
+                "No target selected - use arrow keys to select a row", severity="warning"
+            )
 
 
 __all__ = ["ManualMatchScreen"]

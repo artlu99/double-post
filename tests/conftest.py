@@ -38,23 +38,27 @@ def sample_match_result() -> MatchResult:
 @pytest.fixture
 def sample_records() -> tuple[pd.DataFrame, pd.DataFrame]:
     """Provide matching source and target DataFrames."""
-    source = pd.DataFrame([
-        {
-            "date_clean": datetime(2024, 1, 15),
-            "amount_clean": Decimal("-15.99"),
-            "description_clean": "netflix",
-        },
-        {
-            "date_clean": datetime(2024, 1, 16),
-            "amount_clean": Decimal("50.00"),
-            "description_clean": "deposit",
-        },
-    ])
-    target = pd.DataFrame([
-        {
-            "date_clean": datetime(2024, 1, 15),
-            "amount_clean": Decimal("-15.99"),
-            "description_clean": "netflix.com",
-        },
-    ])
+    source = pd.DataFrame(
+        [
+            {
+                "date_clean": datetime(2024, 1, 15),
+                "amount_clean": Decimal("-15.99"),
+                "description_clean": "netflix",
+            },
+            {
+                "date_clean": datetime(2024, 1, 16),
+                "amount_clean": Decimal("50.00"),
+                "description_clean": "deposit",
+            },
+        ]
+    )
+    target = pd.DataFrame(
+        [
+            {
+                "date_clean": datetime(2024, 1, 15),
+                "amount_clean": Decimal("-15.99"),
+                "description_clean": "netflix.com",
+            },
+        ]
+    )
     return source, target

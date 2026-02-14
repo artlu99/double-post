@@ -97,4 +97,3 @@ def _filter_matches(matches: list[Match], mode: str) -> list[Match]:
     elif mode == "rejected":
         return [m for m in matches if m.decision == MatchDecision.REJECTED]
     return []
-

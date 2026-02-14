@@ -306,18 +306,24 @@ class TestConfidenceTierClassification:
         from src.models import MatchDecision
 
         # Create exact match (should be HIGH tier)
-        source_df = pd.DataFrame([
-            {
-                "date_clean": datetime(2024, 1, 15),
-                "amount_clean": Decimal("15.99"),
-                "description_clean": "netflix",
-            },
-        ])
-        target_df = pd.DataFrame([{
-            "date_clean": datetime(2024, 1, 15),
-            "amount_clean": Decimal("15.99"),
-            "description_clean": "netflix",
-        }])
+        source_df = pd.DataFrame(
+            [
+                {
+                    "date_clean": datetime(2024, 1, 15),
+                    "amount_clean": Decimal("15.99"),
+                    "description_clean": "netflix",
+                },
+            ]
+        )
+        target_df = pd.DataFrame(
+            [
+                {
+                    "date_clean": datetime(2024, 1, 15),
+                    "amount_clean": Decimal("15.99"),
+                    "description_clean": "netflix",
+                }
+            ]
+        )
         config = MatchConfig()
 
         result = find_matches(source_df, target_df, config)
@@ -334,16 +340,24 @@ class TestConfidenceTierClassification:
 
         # Create match with different description (should be MEDIUM tier)
         # Use different first word to avoid intelligent matching
-        source_df = pd.DataFrame([{
-            "date_clean": datetime(2024, 1, 15),
-            "amount_clean": Decimal("15.99"),
-            "description_clean": "coffee shop downtown",
-        }])
-        target_df = pd.DataFrame([{
-            "date_clean": datetime(2024, 1, 15),
-            "amount_clean": Decimal("15.99"),
-            "description_clean": "cafe morning",  # Different first word
-        }])
+        source_df = pd.DataFrame(
+            [
+                {
+                    "date_clean": datetime(2024, 1, 15),
+                    "amount_clean": Decimal("15.99"),
+                    "description_clean": "coffee shop downtown",
+                }
+            ]
+        )
+        target_df = pd.DataFrame(
+            [
+                {
+                    "date_clean": datetime(2024, 1, 15),
+                    "amount_clean": Decimal("15.99"),
+                    "description_clean": "cafe morning",  # Different first word
+                }
+            ]
+        )
         config = MatchConfig()
 
         result = find_matches(source_df, target_df, config)
@@ -359,16 +373,24 @@ class TestConfidenceTierClassification:
         from src.models import ConfidenceTier
 
         # Create match with different amount and date (should be LOW tier)
-        source_df = pd.DataFrame([{
-            "date_clean": datetime(2024, 1, 15),
-            "amount_clean": Decimal("15.99"),
-            "description_clean": "netflix",
-        }])
-        target_df = pd.DataFrame([{
-            "date_clean": datetime(2024, 1, 20),  # Different date (5 days)
-            "amount_clean": Decimal("100.00"),  # Different amount
-            "description_clean": "something else",  # Different description
-        }])
+        source_df = pd.DataFrame(
+            [
+                {
+                    "date_clean": datetime(2024, 1, 15),
+                    "amount_clean": Decimal("15.99"),
+                    "description_clean": "netflix",
+                }
+            ]
+        )
+        target_df = pd.DataFrame(
+            [
+                {
+                    "date_clean": datetime(2024, 1, 20),  # Different date (5 days)
+                    "amount_clean": Decimal("100.00"),  # Different amount
+                    "description_clean": "something else",  # Different description
+                }
+            ]
+        )
         config = MatchConfig(date_window_days=10)
 
         result = find_matches(source_df, target_df, config, min_confidence=0.1)
@@ -380,16 +402,24 @@ class TestConfidenceTierClassification:
 
     def test_none_tier_excluded(self):
         """Test that min_confidence parameter excludes low-confidence matches."""
-        source_df = pd.DataFrame([{
-            "date_clean": datetime(2024, 1, 15),
-            "amount_clean": Decimal("15.99"),
-            "description_clean": "netflix",
-        }])
-        target_df = pd.DataFrame([{
-            "date_clean": datetime(2024, 6, 1),  # Very different date
-            "amount_clean": Decimal("999.99"),  # Different amount
-            "description_clean": "something else",
-        }])
+        source_df = pd.DataFrame(
+            [
+                {
+                    "date_clean": datetime(2024, 1, 15),
+                    "amount_clean": Decimal("15.99"),
+                    "description_clean": "netflix",
+                }
+            ]
+        )
+        target_df = pd.DataFrame(
+            [
+                {
+                    "date_clean": datetime(2024, 6, 1),  # Very different date
+                    "amount_clean": Decimal("999.99"),  # Different amount
+                    "description_clean": "something else",
+                }
+            ]
+        )
         config = MatchConfig(date_window_days=3)
 
         # With min_confidence=0.1, low confidence matches are included
@@ -405,30 +435,34 @@ class TestConfidenceTierClassification:
         """Test that each source row gets its best target match."""
         from src.models import MatchDecision
 
-        source_df = pd.DataFrame([
-            {
-                "date_clean": datetime(2024, 1, 15),
-                "amount_clean": Decimal("15.99"),
-                "description_clean": "netflix",
-            },
-            {
-                "date_clean": datetime(2024, 1, 16),
-                "amount_clean": Decimal("50.00"),
-                "description_clean": "coffee",
-            },
-        ])
-        target_df = pd.DataFrame([
-            {
-                "date_clean": datetime(2024, 1, 15),
-                "amount_clean": Decimal("15.99"),
-                "description_clean": "netflix.com",  # Best match for source 0
-            },
-            {
-                "date_clean": datetime(2024, 1, 16),
-                "amount_clean": Decimal("50.00"),
-                "description_clean": "coffee shop",  # Best match for source 1
-            },
-        ])
+        source_df = pd.DataFrame(
+            [
+                {
+                    "date_clean": datetime(2024, 1, 15),
+                    "amount_clean": Decimal("15.99"),
+                    "description_clean": "netflix",
+                },
+                {
+                    "date_clean": datetime(2024, 1, 16),
+                    "amount_clean": Decimal("50.00"),
+                    "description_clean": "coffee",
+                },
+            ]
+        )
+        target_df = pd.DataFrame(
+            [
+                {
+                    "date_clean": datetime(2024, 1, 15),
+                    "amount_clean": Decimal("15.99"),
+                    "description_clean": "netflix.com",  # Best match for source 0
+                },
+                {
+                    "date_clean": datetime(2024, 1, 16),
+                    "amount_clean": Decimal("50.00"),
+                    "description_clean": "coffee shop",  # Best match for source 1
+                },
+            ]
+        )
         config = MatchConfig()
 
         result = find_matches(source_df, target_df, config)
@@ -454,20 +488,24 @@ class TestIntelligentMatching:
         from src.models import ConfidenceTier, MatchDecision
 
         # Source: "Starbucks Coffee downtown" vs Target: "Starbucks Coffee uptown"
-        source_df = pd.DataFrame([
-            {
-                "date_clean": datetime(2024, 1, 15),
-                "amount_clean": Decimal("8.45"),
-                "description_clean": "starbucks coffee downtown",
-            },
-        ])
-        target_df = pd.DataFrame([
-            {
-                "date_clean": datetime(2024, 1, 15),
-                "amount_clean": Decimal("8.45"),
-                "description_clean": "starbucks coffee uptown location",
-            },
-        ])
+        source_df = pd.DataFrame(
+            [
+                {
+                    "date_clean": datetime(2024, 1, 15),
+                    "amount_clean": Decimal("8.45"),
+                    "description_clean": "starbucks coffee downtown",
+                },
+            ]
+        )
+        target_df = pd.DataFrame(
+            [
+                {
+                    "date_clean": datetime(2024, 1, 15),
+                    "amount_clean": Decimal("8.45"),
+                    "description_clean": "starbucks coffee uptown location",
+                },
+            ]
+        )
 
         config = MatchConfig()
         result = find_matches(source_df, target_df, config)
@@ -486,20 +524,24 @@ class TestIntelligentMatching:
 
         # Source: "Trader Joe's Market" vs Target: "Trader Joes Downtown"
         # After apostrophe removal: "trader joes" matches
-        source_df = pd.DataFrame([
-            {
-                "date_clean": datetime(2024, 1, 15),
-                "amount_clean": Decimal("42.15"),
-                "description_clean": "trader joe's market",
-            },
-        ])
-        target_df = pd.DataFrame([
-            {
-                "date_clean": datetime(2024, 1, 15),
-                "amount_clean": Decimal("42.15"),
-                "description_clean": "trader joes downtown",
-            },
-        ])
+        source_df = pd.DataFrame(
+            [
+                {
+                    "date_clean": datetime(2024, 1, 15),
+                    "amount_clean": Decimal("42.15"),
+                    "description_clean": "trader joe's market",
+                },
+            ]
+        )
+        target_df = pd.DataFrame(
+            [
+                {
+                    "date_clean": datetime(2024, 1, 15),
+                    "amount_clean": Decimal("42.15"),
+                    "description_clean": "trader joes downtown",
+                },
+            ]
+        )
 
         config = MatchConfig()
         result = find_matches(source_df, target_df, config)
@@ -518,20 +560,24 @@ class TestIntelligentMatching:
         # Source: "Simply Noodles 00-08new york ny"
         # Target: "Simply Noodles 267 amsterdam ave"
         # First two words: "simply noodles" match
-        source_df = pd.DataFrame([
-            {
-                "date_clean": datetime(2026, 1, 18),
-                "amount_clean": Decimal("-62.50"),
-                "description_clean": "simply noodles 00-08new york ny",
-            },
-        ])
-        target_df = pd.DataFrame([
-            {
-                "date_clean": datetime(2026, 1, 18),
-                "amount_clean": Decimal("-62.50"),
-                "description_clean": "simply noodles 267 amsterdam ave",
-            },
-        ])
+        source_df = pd.DataFrame(
+            [
+                {
+                    "date_clean": datetime(2026, 1, 18),
+                    "amount_clean": Decimal("-62.50"),
+                    "description_clean": "simply noodles 00-08new york ny",
+                },
+            ]
+        )
+        target_df = pd.DataFrame(
+            [
+                {
+                    "date_clean": datetime(2026, 1, 18),
+                    "amount_clean": Decimal("-62.50"),
+                    "description_clean": "simply noodles 267 amsterdam ave",
+                },
+            ]
+        )
 
         config = MatchConfig()
         result = find_matches(source_df, target_df, config)
@@ -546,20 +592,24 @@ class TestIntelligentMatching:
     def test_intelligent_match_requires_exact_amount(self):
         """Test that intelligent matching requires exact amount match."""
         # Same first two words but different amounts - intelligent match should NOT trigger
-        source_df = pd.DataFrame([
-            {
-                "date_clean": datetime(2024, 1, 15),
-                "amount_clean": Decimal("15.50"),
-                "description_clean": "coffee shop downtown",
-            },
-        ])
-        target_df = pd.DataFrame([
-            {
-                "date_clean": datetime(2024, 1, 15),
-                "amount_clean": Decimal("100.00"),  # Very different amount
-                "description_clean": "coffee shop uptown",
-            },
-        ])
+        source_df = pd.DataFrame(
+            [
+                {
+                    "date_clean": datetime(2024, 1, 15),
+                    "amount_clean": Decimal("15.50"),
+                    "description_clean": "coffee shop downtown",
+                },
+            ]
+        )
+        target_df = pd.DataFrame(
+            [
+                {
+                    "date_clean": datetime(2024, 1, 15),
+                    "amount_clean": Decimal("100.00"),  # Very different amount
+                    "description_clean": "coffee shop uptown",
+                },
+            ]
+        )
 
         config = MatchConfig()
         result = find_matches(source_df, target_df, config)
@@ -572,20 +622,24 @@ class TestIntelligentMatching:
     def test_intelligent_match_requires_at_least_two_words(self):
         """Test that descriptions with less than 2 words don't trigger intelligent matching."""
         # Single word descriptions should not use intelligent matching
-        source_df = pd.DataFrame([
-            {
-                "date_clean": datetime(2024, 1, 15),
-                "amount_clean": Decimal("15.50"),
-                "description_clean": "netflix",
-            },
-        ])
-        target_df = pd.DataFrame([
-            {
-                "date_clean": datetime(2024, 1, 15),
-                "amount_clean": Decimal("15.50"),
-                "description_clean": "netflix",
-            },
-        ])
+        source_df = pd.DataFrame(
+            [
+                {
+                    "date_clean": datetime(2024, 1, 15),
+                    "amount_clean": Decimal("15.50"),
+                    "description_clean": "netflix",
+                },
+            ]
+        )
+        target_df = pd.DataFrame(
+            [
+                {
+                    "date_clean": datetime(2024, 1, 15),
+                    "amount_clean": Decimal("15.50"),
+                    "description_clean": "netflix",
+                },
+            ]
+        )
 
         config = MatchConfig()
         result = find_matches(source_df, target_df, config)
@@ -600,20 +654,24 @@ class TestIntelligentMatching:
         from src.models import ConfidenceTier
 
         # Source: "Coffee Shop" vs Target: "Tea House" - different first two words
-        source_df = pd.DataFrame([
-            {
-                "date_clean": datetime(2024, 1, 15),
-                "amount_clean": Decimal("10.00"),
-                "description_clean": "coffee shop downtown",
-            },
-        ])
-        target_df = pd.DataFrame([
-            {
-                "date_clean": datetime(2024, 1, 15),
-                "amount_clean": Decimal("10.00"),
-                "description_clean": "tea house uptown",
-            },
-        ])
+        source_df = pd.DataFrame(
+            [
+                {
+                    "date_clean": datetime(2024, 1, 15),
+                    "amount_clean": Decimal("10.00"),
+                    "description_clean": "coffee shop downtown",
+                },
+            ]
+        )
+        target_df = pd.DataFrame(
+            [
+                {
+                    "date_clean": datetime(2024, 1, 15),
+                    "amount_clean": Decimal("10.00"),
+                    "description_clean": "tea house uptown",
+                },
+            ]
+        )
 
         config = MatchConfig()
         result = find_matches(source_df, target_df, config)

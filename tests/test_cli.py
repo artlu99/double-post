@@ -78,7 +78,9 @@ class TestCLIReconcileCommand:
         source.write_text("Date,Amount,Description\n2024-01-15,100.00,Coffee\n")
         target.write_text("Date,Amount,Description\n2024-01-15,100.00,Coffee Shop\n")
 
-        result = runner.invoke(app, [str(source), str(target), "--min-confidence", "0.8", "--dry-run"])
+        result = runner.invoke(
+            app, [str(source), str(target), "--min-confidence", "0.8", "--dry-run"]
+        )
 
         assert result.exit_code == 0
 
@@ -126,7 +128,9 @@ class TestCLIReconcileCommand:
         target = tmp_path / "target.csv"
 
         # Source has 2 records, target has 1
-        source.write_text("date,amount,description\n2024-01-15,100.00,Coffee\n2024-01-16,50.00,Lunch\n")
+        source.write_text(
+            "date,amount,description\n2024-01-15,100.00,Coffee\n2024-01-16,50.00,Lunch\n"
+        )
         target.write_text("date,amount,description\n2024-01-15,100.00,Coffee Shop\n")
 
         result = runner.invoke(app, [str(source), str(target), "--dry-run"])
@@ -145,9 +149,13 @@ class TestCLIReconcileCommand:
 
         # Create records that will have low confidence
         source.write_text("date,amount,description\n2024-01-15,100.00,Coffee\n")
-        target.write_text("date,amount,description\n2024-01-15,100.00,Bakery\n")  # Different description
+        target.write_text(
+            "date,amount,description\n2024-01-15,100.00,Bakery\n"
+        )  # Different description
 
-        result = runner.invoke(app, [str(source), str(target), "--min-confidence", "0.1", "--dry-run"])
+        result = runner.invoke(
+            app, [str(source), str(target), "--min-confidence", "0.1", "--dry-run"]
+        )
 
         assert result.exit_code == 0
         # Should show tier breakdown
@@ -165,8 +173,12 @@ class TestCLIFunctionality:
         source = tmp_path / "source.csv"
         target = tmp_path / "target.csv"
 
-        source.write_text("date,amount,description\n2024-01-15,100.00,Coffee\n2024-01-16,50.00,Lunch\n")
-        target.write_text("date,amount,description\n2024-01-15,100.00,Coffee Shop\n2024-01-16,50.00,Lunch\n")
+        source.write_text(
+            "date,amount,description\n2024-01-15,100.00,Coffee\n2024-01-16,50.00,Lunch\n"
+        )
+        target.write_text(
+            "date,amount,description\n2024-01-15,100.00,Coffee Shop\n2024-01-16,50.00,Lunch\n"
+        )
 
         result = runner.invoke(app, [str(source), str(target), "--dry-run"])
 

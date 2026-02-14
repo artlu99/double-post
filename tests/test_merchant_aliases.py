@@ -11,7 +11,6 @@ import pandas as pd
 import pytest
 
 from src.models import MatchConfig
-from tests.factories import TestDataFactory
 
 
 class TestAliasDatabaseInitialization:
@@ -434,16 +433,24 @@ class TestAliasIntegrationWithMatcher:
         # Add alias: "netflix.com" -> "Netflix"
         alias_db.add_alias("Netflix", "netflix.com")
 
-        source_df = pd.DataFrame([{
-            "date_clean": datetime(2024, 1, 15),
-            "amount_clean": Decimal("15.99"),
-            "description_clean": "Netflix",  # Primary name
-        }])
-        target_df = pd.DataFrame([{
-            "date_clean": datetime(2024, 1, 15),
-            "amount_clean": Decimal("15.99"),
-            "description_clean": "netflix.com",  # Alias
-        }])
+        source_df = pd.DataFrame(
+            [
+                {
+                    "date_clean": datetime(2024, 1, 15),
+                    "amount_clean": Decimal("15.99"),
+                    "description_clean": "Netflix",  # Primary name
+                }
+            ]
+        )
+        target_df = pd.DataFrame(
+            [
+                {
+                    "date_clean": datetime(2024, 1, 15),
+                    "amount_clean": Decimal("15.99"),
+                    "description_clean": "netflix.com",  # Alias
+                }
+            ]
+        )
 
         config = MatchConfig()
 
@@ -468,16 +475,24 @@ class TestAliasIntegrationWithMatcher:
 
         # No aliases added
 
-        source_df = pd.DataFrame([{
-            "date_clean": datetime(2024, 1, 15),
-            "amount_clean": Decimal("15.99"),
-            "description_clean": "Netflix",
-        }])
-        target_df = pd.DataFrame([{
-            "date_clean": datetime(2024, 1, 15),
-            "amount_clean": Decimal("15.99"),
-            "description_clean": "netflix.com",
-        }])
+        source_df = pd.DataFrame(
+            [
+                {
+                    "date_clean": datetime(2024, 1, 15),
+                    "amount_clean": Decimal("15.99"),
+                    "description_clean": "Netflix",
+                }
+            ]
+        )
+        target_df = pd.DataFrame(
+            [
+                {
+                    "date_clean": datetime(2024, 1, 15),
+                    "amount_clean": Decimal("15.99"),
+                    "description_clean": "netflix.com",
+                }
+            ]
+        )
 
         config = MatchConfig()
 
@@ -502,16 +517,24 @@ class TestAliasIntegrationWithMatcher:
 
         alias_db.add_alias("Netflix", "netflix.com")
 
-        source_df = pd.DataFrame([{
-            "date_clean": datetime(2024, 1, 15),
-            "amount_clean": Decimal("15.99"),
-            "description_clean": "Netflix",
-        }])
-        target_df = pd.DataFrame([{
-            "date_clean": datetime(2024, 1, 15),
-            "amount_clean": Decimal("99.99"),  # Different amount
-            "description_clean": "netflix.com",
-        }])
+        source_df = pd.DataFrame(
+            [
+                {
+                    "date_clean": datetime(2024, 1, 15),
+                    "amount_clean": Decimal("15.99"),
+                    "description_clean": "Netflix",
+                }
+            ]
+        )
+        target_df = pd.DataFrame(
+            [
+                {
+                    "date_clean": datetime(2024, 1, 15),
+                    "amount_clean": Decimal("99.99"),  # Different amount
+                    "description_clean": "netflix.com",
+                }
+            ]
+        )
 
         config = MatchConfig()
 
@@ -535,16 +558,24 @@ class TestAliasIntegrationWithMatcher:
 
         alias_db.add_alias("Netflix", "netflix.com")
 
-        source_df = pd.DataFrame([{
-            "date_clean": datetime(2024, 1, 15),
-            "amount_clean": Decimal("15.99"),
-            "description_clean": "Netflix",
-        }])
-        target_df = pd.DataFrame([{
-            "date_clean": datetime(2024, 1, 25),  # Different date
-            "amount_clean": Decimal("15.99"),
-            "description_clean": "netflix.com",
-        }])
+        source_df = pd.DataFrame(
+            [
+                {
+                    "date_clean": datetime(2024, 1, 15),
+                    "amount_clean": Decimal("15.99"),
+                    "description_clean": "Netflix",
+                }
+            ]
+        )
+        target_df = pd.DataFrame(
+            [
+                {
+                    "date_clean": datetime(2024, 1, 25),  # Different date
+                    "amount_clean": Decimal("15.99"),
+                    "description_clean": "netflix.com",
+                }
+            ]
+        )
 
         config = MatchConfig(date_window_days=3)
 
@@ -614,3 +645,96 @@ class TestAliasEdgeCases:
 
         # Both should be able to read
         assert db2.get_primary_name("netflix.com") == "Netflix"
+
+
+class TestDefaultAliases:
+    """Test default alias seeding functionality."""
+
+    def test_seed_defaults_adds_mta_alias(self, tmp_path: Path) -> None:
+        """Test that default MTA alias is seeded."""
+        from src.aliases import AliasDatabase, seed_defaults
+
+        db_path = tmp_path / "aliases.db"
+        db = AliasDatabase(db_path)
+        seed_defaults(db)
+
+        # Check that MTA alias was added
+        result = db.get_primary_name("mta*nyct paygo")
+        assert result == "MTA card swipe"
+
+    def test_seed_defaults_is_idempotent(self, tmp_path: Path) -> None:
+        """Test that seeding twice doesn't create duplicates."""
+        from src.aliases import AliasDatabase, seed_defaults
+
+        db_path = tmp_path / "aliases.db"
+        db = AliasDatabase(db_path)
+
+        seed_defaults(db)
+        aliases_first = db.list_aliases()
+
+        seed_defaults(db)
+        aliases_second = db.list_aliases()
+
+        # Should have same count
+        assert len(aliases_first) == len(aliases_second)
+
+    def test_seed_defaults_preserves_existing_aliases(self, tmp_path: Path) -> None:
+        """Test that seeding doesn't remove manually added aliases."""
+        from src.aliases import AliasDatabase, seed_defaults
+
+        db_path = tmp_path / "aliases.db"
+        db = AliasDatabase(db_path)
+
+        # Add a custom alias first
+        db.add_alias("Custom Store", "custom")
+
+        seed_defaults(db)
+
+        # Both should exist
+        assert db.get_primary_name("custom") == "Custom Store"
+        assert db.get_primary_name("mta*nyct paygo") == "MTA card swipe"
+
+    def test_seed_defaults_with_matching_integration(self, tmp_path: Path) -> None:
+        """Test that seeded aliases work in matching."""
+        from datetime import datetime
+        from decimal import Decimal
+
+        import pandas as pd
+
+        from src.aliases import AliasDatabase, seed_defaults
+        from src.matcher import MatchConfig, calculate_confidence
+
+        db_path = tmp_path / "aliases.db"
+        alias_db = AliasDatabase(db_path)
+        seed_defaults(alias_db)
+
+        # MTA transaction using default alias
+        source_df = pd.DataFrame(
+            [
+                {
+                    "date_clean": datetime(2024, 1, 15),
+                    "amount_clean": Decimal("2.90"),
+                    "description_clean": "MTA card swipe",
+                }
+            ]
+        )
+        target_df = pd.DataFrame(
+            [
+                {
+                    "date_clean": datetime(2024, 1, 15),
+                    "amount_clean": Decimal("2.90"),
+                    "description_clean": "MTA*NYCT PAYGO",
+                }
+            ]
+        )
+
+        config = MatchConfig()
+        confidence = calculate_confidence(
+            source_df.iloc[0],
+            target_df.iloc[0],
+            config,
+            alias_db=alias_db,
+        )
+
+        # Should be high confidence due to alias
+        assert confidence >= 0.9

@@ -66,10 +66,7 @@ class MatchState:
         Args:
             match: The missing match to promote
         """
-        if (
-            match.target_idx is None
-            and match.source_idx in self.match_result.missing_in_target
-        ):
+        if match.target_idx is None and match.source_idx in self.match_result.missing_in_target:
             self.match_result.matches.append(match)
             self.match_result.missing_in_target.remove(match.source_idx)
 
@@ -447,7 +444,16 @@ class MatchReviewScreen(Screen):
 
     def _get_table_columns(self) -> list[str]:
         """Get column names for the single-table view."""
-        return ["Status", "Tier", "Date", "Source Amt", "Target Amt", "Source Desc", "Target Desc", "Match Info"]
+        return [
+            "Status",
+            "Tier",
+            "Date",
+            "Source Amt",
+            "Target Amt",
+            "Source Desc",
+            "Target Desc",
+            "Match Info",
+        ]
 
     def _get_status_text(self, decision: MatchDecision, tier: ConfidenceTier) -> str:
         """Get status text with decision and tier indicators."""
@@ -480,7 +486,9 @@ class MatchReviewScreen(Screen):
         confidence_str = f"[{conf_color}]{match.confidence:.2f}[/]"
         reason_short = match.reason.split()[0] if match.reason else ""
 
-        return f"{display_utils.truncate_string(target_desc, 25)} • {confidence_str} ({reason_short})"
+        return (
+            f"{display_utils.truncate_string(target_desc, 25)} • {confidence_str} ({reason_short})"
+        )
 
 
 class MissingItemsScreen(Screen):
@@ -704,4 +712,10 @@ class SummaryScreen(Screen):
         self.app.pop_screen()
 
 
-__all__ = ["MatchReviewScreen", "MissingItemsScreen", "UnmatchedTargetsScreen", "SummaryScreen", "MatchState"]
+__all__ = [
+    "MatchReviewScreen",
+    "MissingItemsScreen",
+    "UnmatchedTargetsScreen",
+    "SummaryScreen",
+    "MatchState",
+]

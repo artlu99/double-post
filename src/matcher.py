@@ -2,6 +2,11 @@
 
 Mitigation #1: Greedy matching algorithm that prevents one target from matching
 to multiple sources by tracking matched indices and processing highest confidence first.
+
+Description matching: When an AliasDatabase is provided (e.g. from main.reconcile),
+all description logic uses the same canonical form via _description_for_matching:
+intelligent match (first-two-words) and confidence (fuzzy) both resolve aliases
+through the DB first. The alias DB is the only source of merchant equivalence.
 """
 
 from datetime import datetime
@@ -44,59 +49,72 @@ def _get_first_two_words(text: str) -> str:
     return ""
 
 
+def _description_for_matching(description: str, alias_db: Any | None) -> str:
+    """Single canonical description used for all matcher logic.
+
+    When alias_db is provided, resolves to primary name if the description
+    is a known alias; otherwise uses normalized description. When alias_db
+    is None, returns normalized description only. This ensures intelligent
+    match (first-two-words) and confidence (fuzzy) both use the same
+    canonical form and the alias DB is the only source of merchant equivalence.
+
+    Args:
+        description: Raw description from record
+        alias_db: Optional AliasDatabase for resolution
+
+    Returns:
+        Normalized string to use for comparison (lower, apostrophes removed)
+    """
+    s = str(description).strip()
+    if not s:
+        return ""
+    if alias_db is not None:
+        primary = alias_db.get_primary_name(s)
+        if primary:
+            s = primary
+    return _normalize_for_intelligent_match(s)
+
+
 def _check_intelligent_match(
-    source: pd.Series, target: pd.Series, config: MatchConfig
+    source: pd.Series,
+    target: pd.Series,
+    config: MatchConfig,
+    alias_db: Any | None = None,
 ) -> float | None:
     """Check for intelligent match with 0.90 confidence.
 
-    Intelligent match criteria:
-    1. Amounts must match EXACTLY (zero tolerance for intelligent matching)
-    2. First TWO words of normalized descriptions must match
-
-    The first-two-words match handles cases like:
-    - "McDonald's #1234" vs "McDonalds Restaurant" (apostrophes removed, but still won't match)
-    - "Trader Joe's Market" vs "Trader Joes Downtown" (first two: "trader joe's" vs "trader joes")
-    - "Simply Noodles 00-08" vs "Simply Noodles 267" (first two: "simply noodles" match)
+    Uses the same canonical description as the rest of the matcher
+    (_description_for_matching with alias_db). Criteria:
+    1. Amounts match EXACTLY
+    2. First TWO words of canonical descriptions match.
 
     Args:
         source: Source record
         target: Target record
-        config: Match configuration
+        config: Matching configuration
+        alias_db: Optional AliasDatabase; when provided, descriptions are
+            resolved to primary name before first-two-words comparison.
 
     Returns:
         0.90 if intelligent match criteria met, None otherwise
     """
-    from decimal import Decimal
-
-    # Check amount match first (EXACT match required for intelligent matching)
     if pd.isna(source["amount_clean"]) or pd.isna(target["amount_clean"]):
         return None
 
-    # Require EXACT amount match (not just within tolerance)
     if source["amount_clean"] != target["amount_clean"]:
         return None
 
-    # Check description match (first TWO normalized words)
     if pd.isna(source["description_clean"]) or pd.isna(target["description_clean"]):
         return None
 
-    source_desc = str(source["description_clean"])
-    target_desc = str(target["description_clean"])
+    source_canonical = _description_for_matching(str(source["description_clean"]), alias_db)
+    target_canonical = _description_for_matching(str(target["description_clean"]), alias_db)
 
-    # Normalize and extract first two words
-    source_normalized = _normalize_for_intelligent_match(source_desc)
-    target_normalized = _normalize_for_intelligent_match(target_desc)
+    source_first_two = _get_first_two_words(source_canonical)
+    target_first_two = _get_first_two_words(target_canonical)
 
-    source_words = source_normalized.split()
-    target_words = target_normalized.split()
-
-    # Need at least two words in both descriptions
-    if len(source_words) < 2 or len(target_words) < 2:
+    if len(source_canonical.split()) < 2 or len(target_canonical.split()) < 2:
         return None
-
-    # Check if first TWO words match
-    source_first_two = " ".join(source_words[:2])
-    target_first_two = " ".join(target_words[:2])
 
     if source_first_two == target_first_two:
         return 0.90
@@ -163,13 +181,15 @@ def calculate_confidence(
     """Calculate confidence score for a potential match.
 
     Combines amount match, date proximity, and description similarity.
-    Optionally boosts confidence when merchant aliases are found.
+    Description comparison uses the same canonical form as intelligent match
+    (_description_for_matching with alias_db when provided).
 
     Args:
         source: Source record (from DataFrame row)
         target: Target record (from DataFrame row)
         config: Matching configuration
-        alias_db: Optional AliasDatabase for merchant name lookups
+        alias_db: Optional AliasDatabase; when provided, descriptions are
+            resolved to primary name before comparison (same as rest of matcher).
 
     Returns:
         Confidence score from 0.0 to 1.0
@@ -192,28 +212,15 @@ def calculate_confidence(
         elif days_diff <= config.date_window_days:
             date_score = 1.0 - (days_diff / config.date_window_days)
 
-    # Description similarity: RapidFuzz ratio
+    # Description similarity: same canonical form as intelligent match (alias DB when provided)
     desc_score: float = 0.0
     if pd.notna(source["description_clean"]) and pd.notna(target["description_clean"]):
-        source_desc: str = str(source["description_clean"])
-        target_desc: str = str(target["description_clean"])
-        similarity = fuzz.ratio(source_desc, target_desc) / 100.0
-
-        # Check for merchant alias match if database provided
-        if alias_db is not None:
-            # Check if target is an alias for source, or vice versa
-            primary_for_target = alias_db.get_primary_name(target_desc)
-            primary_for_source = alias_db.get_primary_name(source_desc)
-
-            # If source description matches target's alias, or vice versa
-            if primary_for_target == source_desc or primary_for_source == target_desc:
-                # Perfect match due to alias!
-                similarity = 1.0
-            elif primary_for_target and primary_for_target == primary_for_source:
-                # Both are aliases for same primary name
-                similarity = max(similarity, 0.9)
-
-        desc_score = similarity
+        source_canonical = _description_for_matching(str(source["description_clean"]), alias_db)
+        target_canonical = _description_for_matching(str(target["description_clean"]), alias_db)
+        if source_canonical == target_canonical:
+            desc_score = 1.0
+        else:
+            desc_score = fuzz.ratio(source_canonical, target_canonical) / 100.0
 
     # Weighted combination
     confidence = (amount_score * 0.3) + (date_score * 0.3) + (desc_score * 0.4)
@@ -285,7 +292,11 @@ def calculate_reason(source: pd.Series, target: pd.Series) -> str:
 
 
 def find_matches(
-    source_df: pd.DataFrame, target_df: pd.DataFrame, config: MatchConfig, min_confidence: float = 0.1
+    source_df: pd.DataFrame,
+    target_df: pd.DataFrame,
+    config: MatchConfig,
+    min_confidence: float = 0.1,
+    alias_db: Any | None = None,
 ) -> MatchResult:
     """Find matches between source and target DataFrames.
 
@@ -306,6 +317,7 @@ def find_matches(
         target_df: Normalized target DataFrame
         config: Matching configuration
         min_confidence: Minimum confidence to include (default 0.1)
+        alias_db: Optional AliasDatabase for merchant name lookups (same as calculate_confidence)
 
     Returns:
         MatchResult with matches categorized by tier
@@ -323,10 +335,12 @@ def find_matches(
         # Find the best target match for this source
         for target_idx, target_row in target_df.iterrows():
             # Calculate general confidence
-            confidence = calculate_confidence(source_row, target_row, config)
+            confidence = calculate_confidence(source_row, target_row, config, alias_db=alias_db)
 
             # Check for intelligent match (0.90 confidence) - use if higher
-            intelligent_confidence = _check_intelligent_match(source_row, target_row, config)
+            intelligent_confidence = _check_intelligent_match(
+                source_row, target_row, config, alias_db=alias_db
+            )
             if intelligent_confidence is not None and intelligent_confidence > confidence:
                 confidence = intelligent_confidence
 
@@ -339,11 +353,7 @@ def find_matches(
             best_matches_for_source[int(source_idx)] = (best_confidence, best_target_idx)
 
     # Sort by confidence descending (greedy: highest confidence first)
-    sorted_matches = sorted(
-        best_matches_for_source.items(),
-        key=lambda x: x[1][0],
-        reverse=True
-    )
+    sorted_matches = sorted(best_matches_for_source.items(), key=lambda x: x[1][0], reverse=True)
 
     # Process matches in confidence order, preventing duplicate target usage
     for source_idx, (confidence, target_idx) in sorted_matches:
@@ -415,9 +425,13 @@ def create_manual_match(
     """
     # Validate indices
     if source_idx < 0 or source_idx >= len(source_df):
-        raise IndexError(f"Source index {source_idx} out of range for DataFrame with {len(source_df)} rows")
+        raise IndexError(
+            f"Source index {source_idx} out of range for DataFrame with {len(source_df)} rows"
+        )
     if target_idx < 0 or target_idx >= len(target_df):
-        raise IndexError(f"Target index {target_idx} out of range for DataFrame with {len(target_df)} rows")
+        raise IndexError(
+            f"Target index {target_idx} out of range for DataFrame with {len(target_df)} rows"
+        )
 
     # Get the records
     source_row = source_df.iloc[source_idx]

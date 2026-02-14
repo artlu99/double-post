@@ -6,7 +6,6 @@ to improve type safety in the Double Post codebase.
 
 from typing import Any
 
-
 class DataTable:
     """A data table widget for displaying tabular data.
 
@@ -39,7 +38,7 @@ class DataTable:
         row: int | None = None,
         column: int | None = None,
         animate: bool = False,
-        scroll: bool = True
+        scroll: bool = True,
     ) -> None:
         """Move the cursor to the given position.
 

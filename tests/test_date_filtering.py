@@ -160,4 +160,3 @@ class TestTargetDateFiltering:
         assert result.exit_code == 0
         # Should not mention filtering (cutoff can't be determined)
         assert "Filtered" not in result.stdout
-

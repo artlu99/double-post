@@ -62,16 +62,24 @@ class TestManualMatchCreation:
 
     def test_manual_match_with_different_amounts(self) -> None:
         """Test manual match with different amounts still works."""
-        source_df = pd.DataFrame([{
-            "date_clean": datetime(2024, 1, 15),
-            "amount_clean": Decimal("100.00"),
-            "description_clean": "coffee",
-        }])
-        target_df = pd.DataFrame([{
-            "date_clean": datetime(2024, 1, 15),
-            "amount_clean": Decimal("50.00"),  # Different amount
-            "description_clean": "coffee",
-        }])
+        source_df = pd.DataFrame(
+            [
+                {
+                    "date_clean": datetime(2024, 1, 15),
+                    "amount_clean": Decimal("100.00"),
+                    "description_clean": "coffee",
+                }
+            ]
+        )
+        target_df = pd.DataFrame(
+            [
+                {
+                    "date_clean": datetime(2024, 1, 15),
+                    "amount_clean": Decimal("50.00"),  # Different amount
+                    "description_clean": "coffee",
+                }
+            ]
+        )
 
         match = create_manual_match(0, 0, source_df, target_df)
 
@@ -82,16 +90,24 @@ class TestManualMatchCreation:
 
     def test_manual_match_with_different_dates(self) -> None:
         """Test manual match with different dates still works."""
-        source_df = pd.DataFrame([{
-            "date_clean": datetime(2024, 1, 15),
-            "amount_clean": Decimal("100.00"),
-            "description_clean": "coffee",
-        }])
-        target_df = pd.DataFrame([{
-            "date_clean": datetime(2024, 1, 20),  # Different date
-            "amount_clean": Decimal("100.00"),
-            "description_clean": "coffee",
-        }])
+        source_df = pd.DataFrame(
+            [
+                {
+                    "date_clean": datetime(2024, 1, 15),
+                    "amount_clean": Decimal("100.00"),
+                    "description_clean": "coffee",
+                }
+            ]
+        )
+        target_df = pd.DataFrame(
+            [
+                {
+                    "date_clean": datetime(2024, 1, 20),  # Different date
+                    "amount_clean": Decimal("100.00"),
+                    "description_clean": "coffee",
+                }
+            ]
+        )
 
         match = create_manual_match(0, 0, source_df, target_df)
 
@@ -101,16 +117,24 @@ class TestManualMatchCreation:
 
     def test_manual_match_with_different_descriptions(self) -> None:
         """Test manual match with different descriptions still works."""
-        source_df = pd.DataFrame([{
-            "date_clean": datetime(2024, 1, 15),
-            "amount_clean": Decimal("100.00"),
-            "description_clean": "coffee shop",
-        }])
-        target_df = pd.DataFrame([{
-            "date_clean": datetime(2024, 1, 15),
-            "amount_clean": Decimal("100.00"),
-            "description_clean": "bakery",  # Different description
-        }])
+        source_df = pd.DataFrame(
+            [
+                {
+                    "date_clean": datetime(2024, 1, 15),
+                    "amount_clean": Decimal("100.00"),
+                    "description_clean": "coffee shop",
+                }
+            ]
+        )
+        target_df = pd.DataFrame(
+            [
+                {
+                    "date_clean": datetime(2024, 1, 15),
+                    "amount_clean": Decimal("100.00"),
+                    "description_clean": "bakery",  # Different description
+                }
+            ]
+        )
 
         match = create_manual_match(0, 0, source_df, target_df)
 
@@ -159,7 +183,9 @@ class TestManualMatchScreen:
 
         # Create a match result where target 0 is already matched
         existing_match = TestDataFactory.create_match(source_idx=1, target_idx=0)
-        match_result = MatchResult(matches=[existing_match], missing_in_target=[], duplicate_matches=[])
+        match_result = MatchResult(
+            matches=[existing_match], missing_in_target=[], duplicate_matches=[]
+        )
 
         screen = ManualMatchScreen(source_df, target_df, 0, match_result)
 

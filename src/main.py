@@ -8,6 +8,7 @@ from pathlib import Path
 import pandas as pd
 import typer
 
+from src.aliases import AliasDatabase, seed_defaults
 from src.csv_loader import load_csv
 from src.models import ConfidenceTier
 from src.matcher import MatchConfig, find_matches, normalize_sign_conventions
@@ -54,8 +55,12 @@ def reconcile(
     typer.echo(f"Detected {target_mapping.format_type.upper()} format for target")
 
     # Report sign convention
-    typer.echo(f"\nSource: DEBIT sign is '{source_convention['debit_sign']}' ({source_convention['debit_count'] if 'debit_count' in source_convention else source_convention['negative_count']} records)")
-    typer.echo(f"Target: DEBIT sign is '{target_convention['debit_sign']}' ({target_convention['debit_count'] if 'debit_count' in target_convention else target_convention['negative_count']} records)")
+    typer.echo(
+        f"\nSource: DEBIT sign is '{source_convention['debit_sign']}' ({source_convention['debit_count'] if 'debit_count' in source_convention else source_convention['negative_count']} records)"
+    )
+    typer.echo(
+        f"Target: DEBIT sign is '{target_convention['debit_sign']}' ({target_convention['debit_count'] if 'debit_count' in target_convention else target_convention['negative_count']} records)"
+    )
 
     # Report date format hints
     if source_mapping.date:
@@ -70,9 +75,17 @@ def reconcile(
     source_debit_sign = source_convention.get("debit_sign", "negative")
     target_debit_sign = target_convention.get("debit_sign", "negative")
 
-    if source_debit_sign != target_debit_sign and source_debit_sign != "debit_col" and target_debit_sign != "debit_col":
-        typer.echo(f"\nNormalizing signs: Target uses opposite sign convention, flipping amounts to match source")
-        source_df, target_df = normalize_sign_conventions(source_df, target_df, source_convention, target_convention)
+    if (
+        source_debit_sign != target_debit_sign
+        and source_debit_sign != "debit_col"
+        and target_debit_sign != "debit_col"
+    ):
+        typer.echo(
+            f"\nNormalizing signs: Target uses opposite sign convention, flipping amounts to match source"
+        )
+        source_df, target_df = normalize_sign_conventions(
+            source_df, target_df, source_convention, target_convention
+        )
 
     # Filter target records to only include dates up to latest source date + 1 day cushion
     # This removes personal records that couldn't possibly be in the bank statement yet
@@ -92,7 +105,9 @@ def reconcile(
 
             filtered_count = original_target_count - len(target_df)
             if filtered_count > 0:
-                typer.echo(f"\nFiltered {filtered_count} target records dated after {cutoff_date.strftime('%Y-%m-%d')} (latest source date + 1 day)")
+                typer.echo(
+                    f"\nFiltered {filtered_count} target records dated after {cutoff_date.strftime('%Y-%m-%d')} (latest source date + 1 day)"
+                )
 
     # Filter out already-reconciled target records
     # This removes personal records that have already been matched in previous runs
@@ -103,8 +118,8 @@ def reconcile(
         # Accept: false, False, FALSE, 0, empty string, NaN
         # Reject: true, True, TRUE, 1
         target_df = target_df[
-            target_df["reconciled"].astype(str).str.lower().isin(["false", "0", ""]) |
-            target_df["reconciled"].isna()
+            target_df["reconciled"].astype(str).str.lower().isin(["false", "0", ""])
+            | target_df["reconciled"].isna()
         ].copy()
 
         # Reset index after filtering
@@ -116,7 +131,16 @@ def reconcile(
 
     # Run matching
     config = MatchConfig(threshold=0.7, date_window_days=date_window)
-    result = find_matches(source_df, target_df, config, min_confidence=min_confidence)
+
+    # Initialize alias database with defaults
+    alias_db_path = Path("data/aliases.db")
+    alias_db_path.parent.mkdir(parents=True, exist_ok=True)
+    alias_db = AliasDatabase(alias_db_path)
+    seed_defaults(alias_db)
+
+    result = find_matches(
+        source_df, target_df, config, min_confidence=min_confidence, alias_db=alias_db
+    )
 
     # Count tiers
     high_tier = sum(1 for m in result.matches if m.tier == ConfidenceTier.HIGH)
@@ -134,7 +158,9 @@ def reconcile(
     typer.echo(f"  + Unmatched targets: {len(result.missing_in_source)}")
     typer.echo(f"\n  Total matches: {len(result.matches)}")
     if result.matches:
-        typer.echo(f"  Accept rate: {high_tier}/{len(result.matches)} ({high_tier/len(result.matches)*100:.1f}%)")
+        typer.echo(
+            f"  Accept rate: {high_tier}/{len(result.matches)} ({high_tier / len(result.matches) * 100:.1f}%)"
+        )
 
     if dry_run:
         # Show all matches with amounts
@@ -145,18 +171,20 @@ def reconcile(
             for match in result.matches:
                 source_rec = source_df.iloc[match.source_idx]
                 source_amt = f"${source_rec['amount_clean']:.2f}"
-                source_desc = source_rec['description_clean'][:40]
+                source_desc = source_rec["description_clean"][:40]
 
                 if match.target_idx is not None:
                     target_rec = target_df.iloc[match.target_idx]
                     target_amt = f"${target_rec['amount_clean']:.2f}"
-                    target_desc = target_rec['description_clean'][:40]
+                    target_desc = target_rec["description_clean"][:40]
                     typer.echo(
                         f"  [{match.tier.value}] {match.confidence:.2f} {source_amt} → {target_amt}"
                     )
                     typer.echo(f"      {source_desc} → {target_desc}")
                 else:
-                    typer.echo(f"  [{match.tier.value}] {match.confidence:.2f} {source_amt} → (no match)")
+                    typer.echo(
+                        f"  [{match.tier.value}] {match.confidence:.2f} {source_amt} → (no match)"
+                    )
                     typer.echo(f"      {source_desc}")
 
         # Show missing source records

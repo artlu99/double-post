@@ -51,16 +51,20 @@ def demo_merchant_aliases():
     # Integration test
     print("\n🔗 Testing integration with matcher...")
 
-    source = pd.Series({
-        "date_clean": datetime(2024, 1, 15),
-        "amount_clean": Decimal("15.99"),
-        "description_clean": "Netflix",
-    })
-    target = pd.Series({
-        "date_clean": datetime(2024, 1, 15),
-        "amount_clean": Decimal("15.99"),
-        "description_clean": "netflix.com",
-    })
+    source = pd.Series(
+        {
+            "date_clean": datetime(2024, 1, 15),
+            "amount_clean": Decimal("15.99"),
+            "description_clean": "Netflix",
+        }
+    )
+    target = pd.Series(
+        {
+            "date_clean": datetime(2024, 1, 15),
+            "amount_clean": Decimal("15.99"),
+            "description_clean": "netflix.com",
+        }
+    )
 
     config = MatchConfig()
 
@@ -86,26 +90,30 @@ def demo_manual_matching():
     print("=" * 60)
 
     # Create test data
-    source_df = pd.DataFrame([
-        {
-            "date_clean": datetime(2024, 1, 15),
-            "amount_clean": Decimal("15.99"),
-            "description_clean": "Netflix",
-        },
-        {
-            "date_clean": datetime(2024, 1, 16),
-            "amount_clean": Decimal("50.00"),
-            "description_clean": "AT&T",
-        },
-    ])
+    source_df = pd.DataFrame(
+        [
+            {
+                "date_clean": datetime(2024, 1, 15),
+                "amount_clean": Decimal("15.99"),
+                "description_clean": "Netflix",
+            },
+            {
+                "date_clean": datetime(2024, 1, 16),
+                "amount_clean": Decimal("50.00"),
+                "description_clean": "AT&T",
+            },
+        ]
+    )
 
-    target_df = pd.DataFrame([
-        {
-            "date_clean": datetime(2024, 1, 15),
-            "amount_clean": Decimal("15.99"),
-            "description_clean": "netflix.com",
-        },
-    ])
+    target_df = pd.DataFrame(
+        [
+            {
+                "date_clean": datetime(2024, 1, 15),
+                "amount_clean": Decimal("15.99"),
+                "description_clean": "netflix.com",
+            },
+        ]
+    )
 
     print("\n📊 Test Data:")
     print(f"  Source records: {len(source_df)}")
@@ -155,13 +163,15 @@ def demo_edit_records():
     print("=" * 60)
 
     # Create test data
-    source_df = pd.DataFrame([
-        {
-            "date_clean": datetime(2024, 1, 15),
-            "amount_clean": Decimal("15.99"),
-            "description_clean": "netflix.com",
-        },
-    ])
+    source_df = pd.DataFrame(
+        [
+            {
+                "date_clean": datetime(2024, 1, 15),
+                "amount_clean": Decimal("15.99"),
+                "description_clean": "netflix.com",
+            },
+        ]
+    )
 
     print("\n📝 Original record:")
     print(f"  Description: '{source_df.iloc[0]['description_clean']}'")
@@ -174,11 +184,15 @@ def demo_edit_records():
     print(f"  New description: '{source_df.iloc[0]['description_clean']}'")
 
     # Show confidence impact
-    target_df = pd.DataFrame([{
-        "date_clean": datetime(2024, 1, 15),
-        "amount_clean": Decimal("15.99"),
-        "description_clean": "Netflix",
-    }])
+    target_df = pd.DataFrame(
+        [
+            {
+                "date_clean": datetime(2024, 1, 15),
+                "amount_clean": Decimal("15.99"),
+                "description_clean": "Netflix",
+            }
+        ]
+    )
 
     config = MatchConfig()
 
@@ -233,6 +247,7 @@ def main():
     except Exception as e:
         print(f"\n❌ Error: {e}")
         import traceback
+
         traceback.print_exc()
 
 

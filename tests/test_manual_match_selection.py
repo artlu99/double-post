@@ -24,17 +24,21 @@ class TestManualMatchSelection:
         The fix should update selected_match_idx when the table cursor moves.
         """
         # Create sample data
-        source_df = pd.DataFrame({
-            "date_clean": [datetime(2024, 1, 10), datetime(2024, 1, 15), datetime(2024, 1, 20)],
-            "amount_clean": [100.00, 200.00, 300.00],
-            "description_clean": ["Coffee Shop", "Lunch Special", "Groceries"],
-        })
+        source_df = pd.DataFrame(
+            {
+                "date_clean": [datetime(2024, 1, 10), datetime(2024, 1, 15), datetime(2024, 1, 20)],
+                "amount_clean": [100.00, 200.00, 300.00],
+                "description_clean": ["Coffee Shop", "Lunch Special", "Groceries"],
+            }
+        )
 
-        target_df = pd.DataFrame({
-            "date_clean": [datetime(2024, 1, 10), datetime(2024, 1, 15), datetime(2024, 1, 20)],
-            "amount_clean": [100.00, 200.00, 300.00],
-            "description_clean": ["Coffee Shop", "Lunch", "Grocery Store"],
-        })
+        target_df = pd.DataFrame(
+            {
+                "date_clean": [datetime(2024, 1, 10), datetime(2024, 1, 15), datetime(2024, 1, 20)],
+                "amount_clean": [100.00, 200.00, 300.00],
+                "description_clean": ["Coffee Shop", "Lunch", "Grocery Store"],
+            }
+        )
 
         # Create matches
         matches = [
@@ -64,17 +68,21 @@ class TestManualMatchSelection:
     def test_manual_match_uses_correct_selected_row(self) -> None:
         """Test that pressing 'm' on a row uses that row's source index."""
         # Create sample data
-        source_df = pd.DataFrame({
-            "date_clean": [datetime(2024, 1, 10), datetime(2024, 1, 15), datetime(2024, 1, 20)],
-            "amount_clean": [100.00, 200.00, 300.00],
-            "description_clean": ["Coffee", "Lunch", "Groceries"],
-        })
+        source_df = pd.DataFrame(
+            {
+                "date_clean": [datetime(2024, 1, 10), datetime(2024, 1, 15), datetime(2024, 1, 20)],
+                "amount_clean": [100.00, 200.00, 300.00],
+                "description_clean": ["Coffee", "Lunch", "Groceries"],
+            }
+        )
 
-        target_df = pd.DataFrame({
-            "date_clean": [datetime(2024, 1, 10), datetime(2024, 1, 15), datetime(2024, 1, 20)],
-            "amount_clean": [100.00, 200.00, 300.00],
-            "description_clean": ["Coffee", "Lunch", "Groceries"],
-        })
+        target_df = pd.DataFrame(
+            {
+                "date_clean": [datetime(2024, 1, 10), datetime(2024, 1, 15), datetime(2024, 1, 20)],
+                "amount_clean": [100.00, 200.00, 300.00],
+                "description_clean": ["Coffee", "Lunch", "Groceries"],
+            }
+        )
 
         # Create matches
         matches = [
@@ -98,4 +106,6 @@ class TestManualMatchSelection:
 
         # The selected match should be the third one (source_idx=2)
         selected_match = filtered_matches[match_state.selected_match_idx]
-        assert selected_match.source_idx == 2, "Manual match should use source_idx from the selected match, not always 0"
+        assert selected_match.source_idx == 2, (
+            "Manual match should use source_idx from the selected match, not always 0"
+        )

@@ -99,10 +99,7 @@ class TestTuiIntegration:
 
         matches = [
             TestDataFactory.create_match(
-                source_idx=0,
-                target_idx=0,
-                confidence=0.95,
-                decision=MatchDecision.PENDING
+                source_idx=0, target_idx=0, confidence=0.95, decision=MatchDecision.PENDING
             ),
         ]
         match_result = TestDataFactory.create_match_result(matches=matches, missing_in_target=[])
@@ -131,9 +128,15 @@ class TestTuiIntegration:
         target_df = TestDataFactory.create_target_dataframe()
 
         matches = [
-            TestDataFactory.create_match(source_idx=0, target_idx=0, decision=MatchDecision.ACCEPTED),
-            TestDataFactory.create_match(source_idx=1, target_idx=1, decision=MatchDecision.REJECTED),
-            TestDataFactory.create_match(source_idx=2, target_idx=2, decision=MatchDecision.PENDING),
+            TestDataFactory.create_match(
+                source_idx=0, target_idx=0, decision=MatchDecision.ACCEPTED
+            ),
+            TestDataFactory.create_match(
+                source_idx=1, target_idx=1, decision=MatchDecision.REJECTED
+            ),
+            TestDataFactory.create_match(
+                source_idx=2, target_idx=2, decision=MatchDecision.PENDING
+            ),
         ]
         match_result = TestDataFactory.create_match_result(matches=matches, missing_in_target=[])
 

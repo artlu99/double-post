@@ -32,12 +32,13 @@ uv run python -m src.main bank.csv personal.csv --dry-run
    - Sign normalization (handles opposite debit/credit conventions)
    - Date filtering (removes records newer than bank statement + 1 day)
    - Reconciled filtering (skips `reconciled=true` records)
-3. **Match**: Intelligent matching (first two words + exact amount = 0.90) or fuzzy matching (amount, date, description)
-4. **Categorize**:
+3. **Alias database**: A persistent SQLite DB at `data/aliases.db` is created on first run and seeded with default merchant aliases (e.g. `MTA*NYCT PAYGO` → "MTA card swipe") so bank descriptions match your personal records. Seeding is idempotent and does not overwrite custom aliases.
+4. **Match**: Intelligent matching (first two words + exact amount = 0.90) or fuzzy matching (amount, date, description), using the alias DB to resolve merchant names
+5. **Categorize**:
    - HIGH (≥0.9): Auto-accepted ⭐
    - MEDIUM (0.5-0.9): Manual review ○
    - LOW (0.1-0.5): Weak suggestions ○
-5. **Review**: TUI for accept/reject/manual match/edit
+6. **Review**: TUI for accept/reject/manual match/edit
 
 ## TUI Shortcuts
 

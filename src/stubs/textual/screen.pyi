@@ -10,7 +10,6 @@ if TYPE_CHECKING:
     from textual.app import App
     from textual.widgets import Widget
 
-
 class Screen:
     """A screen in the Textual TUI framework.
 

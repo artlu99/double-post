@@ -19,16 +19,20 @@ class TestCalculateReason:
 
     def test_exact_match_reason(self) -> None:
         """Test reason for exact match."""
-        source = pd.Series({
-            "amount_clean": Decimal("100.00"),
-            "date_clean": datetime(2024, 1, 15),
-            "description_clean": "coffee shop",
-        })
-        target = pd.Series({
-            "amount_clean": Decimal("100.00"),
-            "date_clean": datetime(2024, 1, 15),
-            "description_clean": "coffee shop",
-        })
+        source = pd.Series(
+            {
+                "amount_clean": Decimal("100.00"),
+                "date_clean": datetime(2024, 1, 15),
+                "description_clean": "coffee shop",
+            }
+        )
+        target = pd.Series(
+            {
+                "amount_clean": Decimal("100.00"),
+                "date_clean": datetime(2024, 1, 15),
+                "description_clean": "coffee shop",
+            }
+        )
 
         reason = calculate_reason(source, target)
 
@@ -39,16 +43,20 @@ class TestCalculateReason:
 
     def test_amount_mismatch_reason(self) -> None:
         """Test reason when amounts differ."""
-        source = pd.Series({
-            "amount_clean": Decimal("100.00"),
-            "date_clean": datetime(2024, 1, 15),
-            "description_clean": "coffee",
-        })
-        target = pd.Series({
-            "amount_clean": Decimal("50.00"),
-            "date_clean": datetime(2024, 1, 15),
-            "description_clean": "coffee",
-        })
+        source = pd.Series(
+            {
+                "amount_clean": Decimal("100.00"),
+                "date_clean": datetime(2024, 1, 15),
+                "description_clean": "coffee",
+            }
+        )
+        target = pd.Series(
+            {
+                "amount_clean": Decimal("50.00"),
+                "date_clean": datetime(2024, 1, 15),
+                "description_clean": "coffee",
+            }
+        )
 
         reason = calculate_reason(source, target)
 
@@ -57,16 +65,20 @@ class TestCalculateReason:
 
     def test_date_difference_reason(self) -> None:
         """Test reason when dates differ."""
-        source = pd.Series({
-            "amount_clean": Decimal("100.00"),
-            "date_clean": datetime(2024, 1, 15),
-            "description_clean": "coffee",
-        })
-        target = pd.Series({
-            "amount_clean": Decimal("100.00"),
-            "date_clean": datetime(2024, 1, 18),
-            "description_clean": "coffee",
-        })
+        source = pd.Series(
+            {
+                "amount_clean": Decimal("100.00"),
+                "date_clean": datetime(2024, 1, 15),
+                "description_clean": "coffee",
+            }
+        )
+        target = pd.Series(
+            {
+                "amount_clean": Decimal("100.00"),
+                "date_clean": datetime(2024, 1, 18),
+                "description_clean": "coffee",
+            }
+        )
 
         reason = calculate_reason(source, target)
 
@@ -75,16 +87,20 @@ class TestCalculateReason:
 
     def test_description_difference_reason(self) -> None:
         """Test reason when descriptions differ."""
-        source = pd.Series({
-            "amount_clean": Decimal("100.00"),
-            "date_clean": datetime(2024, 1, 15),
-            "description_clean": "netflix",
-        })
-        target = pd.Series({
-            "amount_clean": Decimal("100.00"),
-            "date_clean": datetime(2024, 1, 15),
-            "description_clean": "netflix.com",
-        })
+        source = pd.Series(
+            {
+                "amount_clean": Decimal("100.00"),
+                "date_clean": datetime(2024, 1, 15),
+                "description_clean": "netflix",
+            }
+        )
+        target = pd.Series(
+            {
+                "amount_clean": Decimal("100.00"),
+                "date_clean": datetime(2024, 1, 15),
+                "description_clean": "netflix.com",
+            }
+        )
 
         reason = calculate_reason(source, target)
 
@@ -95,16 +111,20 @@ class TestCalculateReason:
 
     def test_similar_description_reason(self) -> None:
         """Test reason when descriptions are similar but not nearly identical (80-94% match)."""
-        source = pd.Series({
-            "amount_clean": Decimal("100.00"),
-            "date_clean": datetime(2024, 1, 15),
-            "description_clean": "coffee",
-        })
-        target = pd.Series({
-            "amount_clean": Decimal("100.00"),
-            "date_clean": datetime(2024, 1, 15),
-            "description_clean": "coffees",  # Similar but not identical (92% match)
-        })
+        source = pd.Series(
+            {
+                "amount_clean": Decimal("100.00"),
+                "date_clean": datetime(2024, 1, 15),
+                "description_clean": "coffee",
+            }
+        )
+        target = pd.Series(
+            {
+                "amount_clean": Decimal("100.00"),
+                "date_clean": datetime(2024, 1, 15),
+                "description_clean": "coffees",  # Similar but not identical (92% match)
+            }
+        )
 
         reason = calculate_reason(source, target)
 
@@ -114,16 +134,20 @@ class TestCalculateReason:
 
     def test_all_different_reason(self) -> None:
         """Test reason when everything differs."""
-        source = pd.Series({
-            "amount_clean": Decimal("100.00"),
-            "date_clean": datetime(2024, 1, 1),
-            "description_clean": "coffee",
-        })
-        target = pd.Series({
-            "amount_clean": Decimal("200.00"),
-            "date_clean": datetime(2024, 2, 1),
-            "description_clean": "lunch",
-        })
+        source = pd.Series(
+            {
+                "amount_clean": Decimal("100.00"),
+                "date_clean": datetime(2024, 1, 1),
+                "description_clean": "coffee",
+            }
+        )
+        target = pd.Series(
+            {
+                "amount_clean": Decimal("200.00"),
+                "date_clean": datetime(2024, 2, 1),
+                "description_clean": "lunch",
+            }
+        )
 
         reason = calculate_reason(source, target)
 
@@ -133,16 +157,20 @@ class TestCalculateReason:
 
     def test_nan_values_handling(self) -> None:
         """Test reason calculation with NaN values."""
-        source = pd.Series({
-            "amount_clean": None,
-            "date_clean": None,
-            "description_clean": None,
-        })
-        target = pd.Series({
-            "amount_clean": Decimal("100.00"),
-            "date_clean": datetime(2024, 1, 15),
-            "description_clean": "coffee",
-        })
+        source = pd.Series(
+            {
+                "amount_clean": None,
+                "date_clean": None,
+                "description_clean": None,
+            }
+        )
+        target = pd.Series(
+            {
+                "amount_clean": Decimal("100.00"),
+                "date_clean": datetime(2024, 1, 15),
+                "description_clean": "coffee",
+            }
+        )
 
         reason = calculate_reason(source, target)
 
@@ -167,16 +195,24 @@ class TestFindMatchesEdgeCases:
 
     def test_no_matches_above_threshold(self) -> None:
         """Test when no records match above threshold."""
-        source_df = pd.DataFrame([{
-            "date_clean": datetime(2024, 1, 1),
-            "amount_clean": Decimal("100.00"),
-            "description_clean": "coffee",
-        }])
-        target_df = pd.DataFrame([{
-            "date_clean": datetime(2024, 2, 1),
-            "amount_clean": Decimal("200.00"),
-            "description_clean": "lunch",
-        }])
+        source_df = pd.DataFrame(
+            [
+                {
+                    "date_clean": datetime(2024, 1, 1),
+                    "amount_clean": Decimal("100.00"),
+                    "description_clean": "coffee",
+                }
+            ]
+        )
+        target_df = pd.DataFrame(
+            [
+                {
+                    "date_clean": datetime(2024, 2, 1),
+                    "amount_clean": Decimal("200.00"),
+                    "description_clean": "lunch",
+                }
+            ]
+        )
         config = MatchConfig(threshold=0.9, date_window_days=1)
 
         result = find_matches(source_df, target_df, config)
@@ -187,23 +223,29 @@ class TestFindMatchesEdgeCases:
 
     def test_all_records_missing(self) -> None:
         """Test when all source records are missing from target."""
-        source_df = pd.DataFrame([
-            {
-                "date_clean": datetime(2024, 1, 1),
-                "amount_clean": Decimal("100.00"),
-                "description_clean": "coffee",
-            },
-            {
-                "date_clean": datetime(2024, 1, 2),
-                "amount_clean": Decimal("50.00"),
-                "description_clean": "lunch",
-            },
-        ])
-        target_df = pd.DataFrame([{
-            "date_clean": datetime(2024, 2, 1),
-            "amount_clean": Decimal("200.00"),
-            "description_clean": "dinner",
-        }])
+        source_df = pd.DataFrame(
+            [
+                {
+                    "date_clean": datetime(2024, 1, 1),
+                    "amount_clean": Decimal("100.00"),
+                    "description_clean": "coffee",
+                },
+                {
+                    "date_clean": datetime(2024, 1, 2),
+                    "amount_clean": Decimal("50.00"),
+                    "description_clean": "lunch",
+                },
+            ]
+        )
+        target_df = pd.DataFrame(
+            [
+                {
+                    "date_clean": datetime(2024, 2, 1),
+                    "amount_clean": Decimal("200.00"),
+                    "description_clean": "dinner",
+                }
+            ]
+        )
         config = MatchConfig(threshold=0.9)
 
         result = find_matches(source_df, target_df, config)
@@ -213,16 +255,24 @@ class TestFindMatchesEdgeCases:
 
     def test_custom_threshold(self) -> None:
         """Test with custom confidence threshold."""
-        source_df = pd.DataFrame([{
-            "date_clean": datetime(2024, 1, 15),
-            "amount_clean": Decimal("100.00"),
-            "description_clean": "coffee",
-        }])
-        target_df = pd.DataFrame([{
-            "date_clean": datetime(2024, 1, 15),
-            "amount_clean": Decimal("100.00"),
-            "description_clean": "coffee shop",
-        }])
+        source_df = pd.DataFrame(
+            [
+                {
+                    "date_clean": datetime(2024, 1, 15),
+                    "amount_clean": Decimal("100.00"),
+                    "description_clean": "coffee",
+                }
+            ]
+        )
+        target_df = pd.DataFrame(
+            [
+                {
+                    "date_clean": datetime(2024, 1, 15),
+                    "amount_clean": Decimal("100.00"),
+                    "description_clean": "coffee shop",
+                }
+            ]
+        )
 
         # High threshold - might not match
         config_high = MatchConfig(threshold=0.99)
@@ -236,16 +286,24 @@ class TestFindMatchesEdgeCases:
 
     def test_custom_date_window(self) -> None:
         """Test with custom date window."""
-        source_df = pd.DataFrame([{
-            "date_clean": datetime(2024, 1, 10),
-            "amount_clean": Decimal("100.00"),
-            "description_clean": "coffee",
-        }])
-        target_df = pd.DataFrame([{
-            "date_clean": datetime(2024, 1, 20),  # 10 days apart
-            "amount_clean": Decimal("100.00"),
-            "description_clean": "coffee",
-        }])
+        source_df = pd.DataFrame(
+            [
+                {
+                    "date_clean": datetime(2024, 1, 10),
+                    "amount_clean": Decimal("100.00"),
+                    "description_clean": "coffee",
+                }
+            ]
+        )
+        target_df = pd.DataFrame(
+            [
+                {
+                    "date_clean": datetime(2024, 1, 20),  # 10 days apart
+                    "amount_clean": Decimal("100.00"),
+                    "description_clean": "coffee",
+                }
+            ]
+        )
 
         # Narrow date window - might not match
         config_narrow = MatchConfig(threshold=0.7, date_window_days=3)
@@ -263,23 +321,29 @@ class TestFindMatchesEdgeCases:
         Greedy algorithm: only one source can match a given target.
         The duplicate source record will be marked as missing.
         """
-        source_df = pd.DataFrame([
-            {
-                "date_clean": datetime(2024, 1, 15),
-                "amount_clean": Decimal("15.99"),
-                "description_clean": "netflix",
-            },
-            {
-                "date_clean": datetime(2024, 1, 15),
-                "amount_clean": Decimal("15.99"),
-                "description_clean": "netflix",
-            },
-        ])
-        target_df = pd.DataFrame([{
-            "date_clean": datetime(2024, 1, 15),
-            "amount_clean": Decimal("15.99"),
-            "description_clean": "netflix",
-        }])
+        source_df = pd.DataFrame(
+            [
+                {
+                    "date_clean": datetime(2024, 1, 15),
+                    "amount_clean": Decimal("15.99"),
+                    "description_clean": "netflix",
+                },
+                {
+                    "date_clean": datetime(2024, 1, 15),
+                    "amount_clean": Decimal("15.99"),
+                    "description_clean": "netflix",
+                },
+            ]
+        )
+        target_df = pd.DataFrame(
+            [
+                {
+                    "date_clean": datetime(2024, 1, 15),
+                    "amount_clean": Decimal("15.99"),
+                    "description_clean": "netflix",
+                }
+            ]
+        )
         config = MatchConfig(threshold=0.7)
 
         result = find_matches(source_df, target_df, config)
@@ -291,23 +355,29 @@ class TestFindMatchesEdgeCases:
     def test_one_to_many_prevention(self) -> None:
         """Test that one target doesn't match multiple sources (greedy algorithm)."""
         # Create scenario where one target could match multiple sources
-        source_df = pd.DataFrame([
-            {
-                "date_clean": datetime(2024, 1, 15),
-                "amount_clean": Decimal("15.99"),
-                "description_clean": "netflix subscription",
-            },
-            {
-                "date_clean": datetime(2024, 1, 15),
-                "amount_clean": Decimal("15.99"),
-                "description_clean": "netflix",
-            },
-        ])
-        target_df = pd.DataFrame([{
-            "date_clean": datetime(2024, 1, 15),
-            "amount_clean": Decimal("15.99"),
-            "description_clean": "netflix.com",
-        }])
+        source_df = pd.DataFrame(
+            [
+                {
+                    "date_clean": datetime(2024, 1, 15),
+                    "amount_clean": Decimal("15.99"),
+                    "description_clean": "netflix subscription",
+                },
+                {
+                    "date_clean": datetime(2024, 1, 15),
+                    "amount_clean": Decimal("15.99"),
+                    "description_clean": "netflix",
+                },
+            ]
+        )
+        target_df = pd.DataFrame(
+            [
+                {
+                    "date_clean": datetime(2024, 1, 15),
+                    "amount_clean": Decimal("15.99"),
+                    "description_clean": "netflix.com",
+                }
+            ]
+        )
         config = MatchConfig(threshold=0.7)
 
         result = find_matches(source_df, target_df, config)
@@ -319,11 +389,15 @@ class TestFindMatchesEdgeCases:
     def test_all_missing_from_target(self) -> None:
         """Test when all source records are missing from target (below minimum confidence)."""
         source_df = TestDataFactory.create_source_dataframe()
-        target_df = pd.DataFrame([{
-            "date_clean": datetime(2024, 3, 1),
-            "amount_clean": Decimal("999.99"),
-            "description_clean": "something else",
-        }])
+        target_df = pd.DataFrame(
+            [
+                {
+                    "date_clean": datetime(2024, 3, 1),
+                    "amount_clean": Decimal("999.99"),
+                    "description_clean": "something else",
+                }
+            ]
+        )
         config = MatchConfig(threshold=0.9)
 
         # Use high min_confidence to ensure no matches are found

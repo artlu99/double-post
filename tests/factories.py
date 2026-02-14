@@ -33,12 +33,14 @@ class TestDataFactory:
         Returns:
             pandas Series with normalized record data
         """
-        return pd.Series({
-            "date_clean": date,
-            "amount_clean": amount,
-            "description_clean": description,
-            "original_idx": original_idx,
-        })
+        return pd.Series(
+            {
+                "date_clean": date,
+                "amount_clean": amount,
+                "description_clean": description,
+                "original_idx": original_idx,
+            }
+        )
 
     @staticmethod
     def create_source_dataframe(records: list[dict] | None = None) -> pd.DataFrame:
@@ -149,7 +151,9 @@ class TestDataFactory:
             ]
         if missing_in_target is None:
             missing_in_target = [2, 3]
-        return MatchResult(matches=matches, missing_in_target=missing_in_target, duplicate_matches=[])
+        return MatchResult(
+            matches=matches, missing_in_target=missing_in_target, duplicate_matches=[]
+        )
 
     @staticmethod
     def create_chase_csv_row(

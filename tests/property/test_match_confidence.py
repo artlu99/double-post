@@ -24,19 +24,25 @@ def draw_match_pair(draw):
     """
     date = draw(st.datetimes(min_value=datetime(2020, 1, 1), max_value=datetime(2025, 12, 31)))
     amount = draw(st.decimals(min_value=Decimal("0.01"), max_value=Decimal("10000"), places=2))
-    description = draw(st.text(min_size=3, max_size=50, alphabet=st.characters(whitelist_categories="L")))
+    description = draw(
+        st.text(min_size=3, max_size=50, alphabet=st.characters(whitelist_categories="L"))
+    )
 
-    source = pd.Series({
-        "date_clean": date,
-        "amount_clean": amount,
-        "description_clean": description.lower(),
-    })
+    source = pd.Series(
+        {
+            "date_clean": date,
+            "amount_clean": amount,
+            "description_clean": description.lower(),
+        }
+    )
 
-    target = pd.Series({
-        "date_clean": date,
-        "amount_clean": amount,
-        "description_clean": description.lower(),
-    })
+    target = pd.Series(
+        {
+            "date_clean": date,
+            "amount_clean": amount,
+            "description_clean": description.lower(),
+        }
+    )
 
     return source, target
 
@@ -72,16 +78,20 @@ class TestConfidenceCalculationProperties:
     )
     def test_same_amount_gives_nonzero_confidence(self, date, amount1, amount2) -> None:
         """Records with same amount should have non-zero confidence."""
-        source = pd.Series({
-            "date_clean": date,
-            "amount_clean": amount1,
-            "description_clean": "test",
-        })
-        target = pd.Series({
-            "date_clean": date,
-            "amount_clean": amount2,
-            "description_clean": "test",
-        })
+        source = pd.Series(
+            {
+                "date_clean": date,
+                "amount_clean": amount1,
+                "description_clean": "test",
+            }
+        )
+        target = pd.Series(
+            {
+                "date_clean": date,
+                "amount_clean": amount2,
+                "description_clean": "test",
+            }
+        )
         config = MatchConfig()
 
         confidence = calculate_confidence(source, target, config)
@@ -96,23 +106,29 @@ class TestConfidenceCalculationProperties:
     )
     def test_commutative_confidence(self, date, amount) -> None:
         """Confidence should be symmetric (same if we swap source/target)."""
-        source = pd.Series({
-            "date_clean": date,
-            "amount_clean": amount,
-            "description_clean": "test",
-        })
-        target = pd.Series({
-            "date_clean": date,
-            "amount_clean": amount,
-            "description_clean": "test",
-        })
+        source = pd.Series(
+            {
+                "date_clean": date,
+                "amount_clean": amount,
+                "description_clean": "test",
+            }
+        )
+        target = pd.Series(
+            {
+                "date_clean": date,
+                "amount_clean": amount,
+                "description_clean": "test",
+            }
+        )
         config = MatchConfig()
 
         confidence1 = calculate_confidence(source, target, config)
         confidence2 = calculate_confidence(target, source, config)
 
         # Confidence calculation should be symmetric
-        assert abs(confidence1 - confidence2) < 0.001, f"Not symmetric: {confidence1} != {confidence2}"
+        assert abs(confidence1 - confidence2) < 0.001, (
+            f"Not symmetric: {confidence1} != {confidence2}"
+        )
 
 
 class TestConfidenceInvariants:
@@ -120,16 +136,20 @@ class TestConfidenceInvariants:
 
     def test_all_exact_match_maximum_confidence(self) -> None:
         """Perfect match should yield maximum confidence."""
-        source = pd.Series({
-            "date_clean": datetime(2024, 1, 15),
-            "amount_clean": Decimal("100.00"),
-            "description_clean": "test transaction",
-        })
-        target = pd.Series({
-            "date_clean": datetime(2024, 1, 15),
-            "amount_clean": Decimal("100.00"),
-            "description_clean": "test transaction",
-        })
+        source = pd.Series(
+            {
+                "date_clean": datetime(2024, 1, 15),
+                "amount_clean": Decimal("100.00"),
+                "description_clean": "test transaction",
+            }
+        )
+        target = pd.Series(
+            {
+                "date_clean": datetime(2024, 1, 15),
+                "amount_clean": Decimal("100.00"),
+                "description_clean": "test transaction",
+            }
+        )
         config = MatchConfig()
 
         confidence = calculate_confidence(source, target, config)
@@ -138,16 +158,20 @@ class TestConfidenceInvariants:
 
     def test_all_different_minimum_confidence(self) -> None:
         """Completely different records should have minimum confidence."""
-        source = pd.Series({
-            "date_clean": datetime(2024, 1, 1),
-            "amount_clean": Decimal("100.00"),
-            "description_clean": "aaaa",
-        })
-        target = pd.Series({
-            "date_clean": datetime(2025, 12, 31),
-            "amount_clean": Decimal("9999.99"),
-            "description_clean": "zzzz",
-        })
+        source = pd.Series(
+            {
+                "date_clean": datetime(2024, 1, 1),
+                "amount_clean": Decimal("100.00"),
+                "description_clean": "aaaa",
+            }
+        )
+        target = pd.Series(
+            {
+                "date_clean": datetime(2025, 12, 31),
+                "amount_clean": Decimal("9999.99"),
+                "description_clean": "zzzz",
+            }
+        )
         config = MatchConfig()
 
         confidence = calculate_confidence(source, target, config)
@@ -161,23 +185,29 @@ class TestConfidenceInvariants:
         description = "test"
 
         # Close date (0 days apart)
-        source = pd.Series({
-            "date_clean": datetime(2024, 1, 15),
-            "amount_clean": amount,
-            "description_clean": description,
-        })
-        target_close = pd.Series({
-            "date_clean": datetime(2024, 1, 15),
-            "amount_clean": amount,
-            "description_clean": description,
-        })
+        source = pd.Series(
+            {
+                "date_clean": datetime(2024, 1, 15),
+                "amount_clean": amount,
+                "description_clean": description,
+            }
+        )
+        target_close = pd.Series(
+            {
+                "date_clean": datetime(2024, 1, 15),
+                "amount_clean": amount,
+                "description_clean": description,
+            }
+        )
 
         # Far date (10 days apart)
-        target_far = pd.Series({
-            "date_clean": datetime(2024, 1, 25),
-            "amount_clean": amount,
-            "description_clean": description,
-        })
+        target_far = pd.Series(
+            {
+                "date_clean": datetime(2024, 1, 25),
+                "amount_clean": amount,
+                "description_clean": description,
+            }
+        )
 
         config = MatchConfig(date_window_days=3)
 
