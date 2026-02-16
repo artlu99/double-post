@@ -344,10 +344,10 @@ def find_matches(
     - NONE (<0.1): Not included in results
 
     Mitigation #1: Uses greedy matching to prevent duplicate false matches.
-    - Finds best match for ALL source rows
+    - Collects ALL (source, target) pairs with confidence >= min_confidence
     - Sorts by confidence descending
-    - Processes highest confidence matches first
-    - Tracks matched target indices to prevent reuse
+    - Processes in order: add match if both source and target still unmatched
+    - Tracks matched sources and targets to prevent reuse (handles duplicate transactions)
 
     Performance optimization: Pre-calculates vectorized amount bounds (±amount_tolerance)
     to skip expensive fuzzy matching for pairs where amount difference exceeds tolerance.
@@ -363,7 +363,8 @@ def find_matches(
         MatchResult with matches categorized by tier
     """
     matches: list[Match] = []
-    matched_targets: set[int] = set()  # Critical: track used targets
+    matched_sources: set[int] = set()
+    matched_targets: set[int] = set()
 
     # Early return for empty DataFrames or missing columns
     if len(source_df) == 0 or len(target_df) == 0:
@@ -421,16 +422,11 @@ def find_matches(
         for row in filtered_target_df.itertuples(index=False)
     ]
 
-    # Find best match for each source row
-    best_matches_for_source: dict[int, tuple[float, int]] = {}
+    # Collect ALL (source, target) pairs with confidence >= min_confidence
+    candidate_pairs: list[tuple[float, int, int]] = []
 
     # Use itertuples() for faster iteration (returns namedtuples instead of Series)
-    # enumerate provides positional index which aligns with our pre-calculated bounds
     for source_idx, source_row in enumerate(source_df.itertuples(index=False)):
-        best_confidence = 0.0
-        best_target_idx = -1
-
-        # Get pre-calculated amount bounds and canonical description for this source row
         source_lower = source_amount_lower[source_idx]
         source_upper = source_amount_upper[source_idx]
         source_canonical = source_canonical_descs[source_idx]
@@ -438,22 +434,17 @@ def find_matches(
             _get_first_two_words(source_canonical) if len(source_canonical.split()) >= 2 else None
         )
 
-        # Find the best target match for this source (using filtered targets)
         for filtered_idx, target_row in enumerate(filtered_target_df.itertuples(index=False)):
-            # Early-exit: Skip if target amount is outside tolerance range
             target_amount = target_row.amount_clean
             if pd.notna(target_amount) and (
                 target_amount < source_lower or target_amount > source_upper
             ):
                 continue
 
-            # OPTIMIZATION: Check intelligent match FIRST (cheaper than fuzzy matching)
-            # If intelligent match passes (0.90), skip expensive calculate_confidence
             intelligent_confidence = None
             source_amt = _get_row_field(source_row, "amount_clean")
             target_amt = _get_row_field(target_row, "amount_clean")
 
-            # Intelligent match: exact amount + first two words match
             if (
                 pd.notna(source_amt)
                 and pd.notna(target_amt)
@@ -466,37 +457,27 @@ def find_matches(
                     if source_first_two == target_first_two:
                         intelligent_confidence = 0.90
 
-            # Use intelligent match if found, otherwise calculate full confidence
             if intelligent_confidence is not None:
                 confidence = intelligent_confidence
             else:
                 confidence = calculate_confidence(source_row, target_row, config, alias_db=alias_db)
 
-            if confidence > best_confidence:
-                best_confidence = confidence
-                # Store original target index, not filtered index
-                best_target_idx = int(filtered_to_original_indices[filtered_idx])
-
-        # Store if above minimum threshold
-        if best_confidence >= min_confidence and best_target_idx >= 0:
-            best_matches_for_source[int(source_idx)] = (best_confidence, best_target_idx)
+            if confidence >= min_confidence:
+                target_idx = int(filtered_to_original_indices[filtered_idx])
+                candidate_pairs.append((confidence, source_idx, target_idx))
 
     # Sort by confidence descending (greedy: highest confidence first)
-    sorted_matches = sorted(best_matches_for_source.items(), key=lambda x: x[1][0], reverse=True)
+    candidate_pairs.sort(key=lambda x: x[0], reverse=True)
 
-    # Process matches in confidence order, preventing duplicate target usage
-    for source_idx, (confidence, target_idx) in sorted_matches:
-        # Skip if target already matched
-        if target_idx in matched_targets:
+    # Process in order: add match if both source and target still unmatched
+    for confidence, source_idx, target_idx in candidate_pairs:
+        if source_idx in matched_sources or target_idx in matched_targets:
             continue
 
         source_row = source_df.iloc[source_idx]
         target_row = target_df.iloc[target_idx]
 
-        # Classify confidence tier
         tier = classify_confidence_tier(confidence)
-
-        # Auto-accept HIGH tier matches
         decision = MatchDecision.ACCEPTED if tier == ConfidenceTier.HIGH else MatchDecision.PENDING
 
         matches.append(
@@ -510,12 +491,12 @@ def find_matches(
             )
         )
 
+        matched_sources.add(source_idx)
         matched_targets.add(target_idx)
 
-    # Find source records that weren't matched (none had confidence ≥ min_confidence)
+    # Find source records that weren't matched
     all_source_indices = set(source_df.index)
-    matched_source_indices = {m.source_idx for m in matches}
-    missing_in_target = sorted(all_source_indices - matched_source_indices)
+    missing_in_target = sorted(all_source_indices - matched_sources)
 
     # Find target records that weren't matched
     all_target_indices = set(target_df.index)

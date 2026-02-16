@@ -2,10 +2,12 @@
 
 from datetime import datetime
 from decimal import Decimal
+from pathlib import Path
 
 import pandas as pd
 import pytest
 
+from src.aliases import AliasDatabase, seed_defaults
 from src.matcher import Match, MatchConfig, calculate_confidence, find_matches
 
 
@@ -184,6 +186,53 @@ class TestDuplicatePrevention:
         assert len(result.matches) == 1
         assert result.matches[0].source_idx == 0
         assert result.matches[0].confidence > 0.95
+
+    def test_duplicate_transactions_match_one_to_one(self, tmp_path: Path):
+        """Test that N identical sources and N identical targets all match 1:1."""
+        # Multiple identical transactions (e.g. MTA rides) with alias resolution
+        alias_db = AliasDatabase(tmp_path / "aliases.db")
+        seed_defaults(alias_db)
+
+        source_df = pd.DataFrame(
+            [
+                {
+                    "date_clean": datetime(2024, 2, 9),
+                    "amount_clean": Decimal("-3.00"),
+                    "description_clean": "mta*nyct paygo",
+                },
+                {
+                    "date_clean": datetime(2024, 2, 9),
+                    "amount_clean": Decimal("-3.00"),
+                    "description_clean": "mta*nyct paygo",
+                },
+            ]
+        )
+        target_df = pd.DataFrame(
+            [
+                {
+                    "date_clean": datetime(2024, 2, 9),
+                    "amount_clean": Decimal("-3.00"),
+                    "description_clean": "mta card swipe",
+                },
+                {
+                    "date_clean": datetime(2024, 2, 9),
+                    "amount_clean": Decimal("-3.00"),
+                    "description_clean": "mta card swipe",
+                },
+            ]
+        )
+
+        config = MatchConfig()
+        result = find_matches(
+            source_df, target_df, config, min_confidence=0.1, alias_db=alias_db
+        )
+
+        # All-pairs greedy: both sources should match both targets 1:1
+        assert len(result.matches) == 2
+        assert len(result.missing_in_target) == 0
+        assert len(result.missing_in_source) == 0
+        assert {m.source_idx for m in result.matches} == {0, 1}
+        assert {m.target_idx for m in result.matches} == {0, 1}
 
 
 class TestMatchResultStructure:

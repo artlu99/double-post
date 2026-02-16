@@ -59,7 +59,7 @@ def reconcile(
         f"\nSource: DEBIT sign is '{source_convention['debit_sign']}' ({source_convention['debit_count'] if 'debit_count' in source_convention else source_convention['negative_count']} records)"
     )
     typer.echo(
-        f"Target: DEBIT sign is '{target_convention['debit_sign']}' ({target_convention['debit_count'] if 'debit_count' in target_convention else target_convention['negative_count']} records)"
+        f"Target: DEBIT sign is '{target_convention['debit_sign']}' ({source_convention['debit_count'] if 'debit_count' in source_convention else target_convention['negative_count']} records)"
     )
 
     # Report date format hints
@@ -68,8 +68,29 @@ def reconcile(
     if target_mapping.date:
         typer.echo(f"  Using date column: {target_mapping.date}")
 
-    # Report record counts
+    # Report record counts BEFORE filtering
     typer.echo(f"\nLoaded {len(source_df)} source records, {len(target_df)} target records")
+
+    # Filter out already-reconciled target records FIRST
+    # This removes personal records that have already been matched in previous runs
+    # Done early to reduce data size before any processing
+    if "reconciled" in target_df.columns:
+        original_target_count = len(target_df)
+
+        # Filter to only include records where reconciled is not True (case-insensitive)
+        # Accept: false, False, FALSE, 0, empty string, NaN
+        # Reject: true, True, TRUE, 1
+        target_df = target_df[
+            target_df["reconciled"].astype(str).str.lower().isin(["false", "0", ""])
+            | target_df["reconciled"].isna()
+        ].copy()
+
+        # Reset index after filtering
+        target_df.reset_index(drop=True, inplace=True)
+
+        filtered_count = original_target_count - len(target_df)
+        if filtered_count > 0:
+            typer.echo(f"Filtered {filtered_count} already-reconciled target record(s)")
 
     # Normalize sign conventions if they differ
     source_debit_sign = source_convention.get("debit_sign", "negative")
@@ -106,28 +127,8 @@ def reconcile(
             filtered_count = original_target_count - len(target_df)
             if filtered_count > 0:
                 typer.echo(
-                    f"\nFiltered {filtered_count} target records dated after {cutoff_date.strftime('%Y-%m-%d')} (latest source date + 1 day)"
+                    f"Filtered {filtered_count} target records dated after {cutoff_date.strftime('%Y-%m-%d')} (latest source date + 1 day)"
                 )
-
-    # Filter out already-reconciled target records
-    # This removes personal records that have already been matched in previous runs
-    if "reconciled" in target_df.columns:
-        original_target_count = len(target_df)
-
-        # Filter to only include records where reconciled is not True (case-insensitive)
-        # Accept: false, False, FALSE, 0, empty string, NaN
-        # Reject: true, True, TRUE, 1
-        target_df = target_df[
-            target_df["reconciled"].astype(str).str.lower().isin(["false", "0", ""])
-            | target_df["reconciled"].isna()
-        ].copy()
-
-        # Reset index after filtering
-        target_df.reset_index(drop=True, inplace=True)
-
-        filtered_count = original_target_count - len(target_df)
-        if filtered_count > 0:
-            typer.echo(f"\nFiltered {filtered_count} already-reconciled target record(s)")
 
     # Run matching
     config = MatchConfig(threshold=0.7, date_window_days=date_window)
