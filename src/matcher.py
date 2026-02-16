@@ -375,8 +375,8 @@ def find_matches(
 
     # Pre-calculate vectorized amount bounds for early-exit optimization
     # This avoids expensive fuzzy matching for pairs with wildly different amounts
-    # Convert Decimal to float for numpy vectorized operations
-    source_amounts = source_df["amount_clean"].astype(float).values
+    # Convert to ndarray for numpy vectorized operations (avoids ExtensionArray type issues)
+    source_amounts = np.asarray(source_df["amount_clean"].astype(float), dtype=np.float64)
     tolerance = float(config.amount_tolerance)
     # Calculate bounds and ensure lower <= upper (handles negative amounts correctly)
     lower_bound = source_amounts * (1 - tolerance)
@@ -394,7 +394,7 @@ def find_matches(
     global_upper = max(global_source_max * (1 - tolerance), global_source_max * (1 + tolerance))
 
     # Filter targets to only those within the global amount range
-    target_amounts = target_df["amount_clean"].astype(float).values
+    target_amounts = np.asarray(target_df["amount_clean"].astype(float), dtype=np.float64)
     target_mask = (target_amounts >= global_lower) & (target_amounts <= global_upper)
     filtered_target_df = target_df[target_mask].copy()
     filtered_to_original_indices = np.where(target_mask)[0].tolist()

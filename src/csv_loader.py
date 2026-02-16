@@ -62,8 +62,9 @@ def detect_column_mapping(df: pd.DataFrame, _source_type: str | None) -> ColumnM
     desc_col = find_column(["description", "desc", "descript", "memo", "merchant"])
 
     # Determine format type
+    format_type: Literal["chase", "generic"]
     if debit_col and credit_col:
-        format_type: Literal = "chase"
+        format_type = "chase"
     else:
         format_type = "generic"
 
