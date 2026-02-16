@@ -9,13 +9,32 @@ intelligent match (first-two-words) and confidence (fuzzy) both resolve aliases
 through the DB first. The alias DB is the only source of merchant equivalence.
 """
 
-from datetime import datetime
 from typing import Any
 
+import numpy as np
 import pandas as pd
 from rapidfuzz import fuzz
 
 from src.models import ConfidenceTier, Match, MatchConfig, MatchDecision, MatchResult
+
+
+def _get_row_field(row: Any, field: str) -> Any:
+    """Safely get a field value from a pandas Series or itertuples namedtuple.
+
+    Args:
+        row: A pandas Series or namedtuple from itertuples()
+        field: Field name to retrieve
+
+    Returns:
+        Field value or None if not found
+    """
+    # Try dictionary-style access first (Series)
+    try:
+        return row[field]
+    except (KeyError, TypeError):
+        pass
+    # Try attribute access (namedtuple from itertuples)
+    return getattr(row, field, None)
 
 
 def _normalize_for_intelligent_match(text: str) -> str:
@@ -76,9 +95,9 @@ def _description_for_matching(description: str, alias_db: Any | None) -> str:
 
 
 def _check_intelligent_match(
-    source: pd.Series,
-    target: pd.Series,
-    config: MatchConfig,
+    source: Any,
+    target: Any,
+    config: MatchConfig,  # noqa: ARG001 - unused but kept for API compatibility
     alias_db: Any | None = None,
 ) -> float | None:
     """Check for intelligent match with 0.90 confidence.
@@ -89,8 +108,8 @@ def _check_intelligent_match(
     2. First TWO words of canonical descriptions match.
 
     Args:
-        source: Source record
-        target: Target record
+        source: Source record (Series or namedtuple from itertuples)
+        target: Target record (Series or namedtuple from itertuples)
         config: Matching configuration
         alias_db: Optional AliasDatabase; when provided, descriptions are
             resolved to primary name before first-two-words comparison.
@@ -98,17 +117,23 @@ def _check_intelligent_match(
     Returns:
         0.90 if intelligent match criteria met, None otherwise
     """
-    if pd.isna(source["amount_clean"]) or pd.isna(target["amount_clean"]):
+    source_amount = _get_row_field(source, "amount_clean")
+    target_amount = _get_row_field(target, "amount_clean")
+
+    if pd.isna(source_amount) or pd.isna(target_amount):
         return None
 
-    if source["amount_clean"] != target["amount_clean"]:
+    if source_amount != target_amount:
         return None
 
-    if pd.isna(source["description_clean"]) or pd.isna(target["description_clean"]):
+    source_desc = _get_row_field(source, "description_clean")
+    target_desc = _get_row_field(target, "description_clean")
+
+    if pd.isna(source_desc) or pd.isna(target_desc):
         return None
 
-    source_canonical = _description_for_matching(str(source["description_clean"]), alias_db)
-    target_canonical = _description_for_matching(str(target["description_clean"]), alias_db)
+    source_canonical = _description_for_matching(str(source_desc), alias_db)
+    target_canonical = _description_for_matching(str(target_desc), alias_db)
 
     source_first_two = _get_first_two_words(source_canonical)
     target_first_two = _get_first_two_words(target_canonical)
@@ -143,7 +168,6 @@ def normalize_sign_conventions(
     Returns:
         Tuple of (source_df, target_df) with normalized signs
     """
-    from decimal import Decimal
 
     # Get the debit sign for each file
     source_debit_sign = source_convention.get("debit_sign", "negative")
@@ -173,8 +197,8 @@ def normalize_sign_conventions(
 
 
 def calculate_confidence(
-    source: pd.Series,
-    target: pd.Series,
+    source: Any,
+    target: Any,
     config: MatchConfig,
     alias_db: Any | None = None,
 ) -> float:
@@ -185,8 +209,8 @@ def calculate_confidence(
     (_description_for_matching with alias_db when provided).
 
     Args:
-        source: Source record (from DataFrame row)
-        target: Target record (from DataFrame row)
+        source: Source record (Series or namedtuple from itertuples)
+        target: Target record (Series or namedtuple from itertuples)
         config: Matching configuration
         alias_db: Optional AliasDatabase; when provided, descriptions are
             resolved to primary name before comparison (same as rest of matcher).
@@ -196,15 +220,20 @@ def calculate_confidence(
     """
     # Amount match: 1.0 if equal, 0.0 otherwise
     amount_score: float = 0.0
-    if pd.notna(source["amount_clean"]) and pd.notna(target["amount_clean"]):
-        if abs(source["amount_clean"] - target["amount_clean"]) <= config.amount_tolerance:
-            amount_score = 1.0
+    source_amount = _get_row_field(source, "amount_clean")
+    target_amount = _get_row_field(target, "amount_clean")
+    if (
+        pd.notna(source_amount)
+        and pd.notna(target_amount)
+        and abs(source_amount - target_amount) <= config.amount_tolerance
+    ):
+        amount_score = 1.0
 
     # Date proximity: 1.0 if same date, decreases with distance
     date_score: float = 0.0
-    if pd.notna(source["date_clean"]) and pd.notna(target["date_clean"]):
-        source_date: datetime = source["date_clean"]
-        target_date: datetime = target["date_clean"]
+    source_date = _get_row_field(source, "date_clean")
+    target_date = _get_row_field(target, "date_clean")
+    if pd.notna(source_date) and pd.notna(target_date):
         days_diff = abs((source_date - target_date).days)
 
         if days_diff == 0:
@@ -214,9 +243,11 @@ def calculate_confidence(
 
     # Description similarity: same canonical form as intelligent match (alias DB when provided)
     desc_score: float = 0.0
-    if pd.notna(source["description_clean"]) and pd.notna(target["description_clean"]):
-        source_canonical = _description_for_matching(str(source["description_clean"]), alias_db)
-        target_canonical = _description_for_matching(str(target["description_clean"]), alias_db)
+    source_desc = _get_row_field(source, "description_clean")
+    target_desc = _get_row_field(target, "description_clean")
+    if pd.notna(source_desc) and pd.notna(target_desc):
+        source_canonical = _description_for_matching(str(source_desc), alias_db)
+        target_canonical = _description_for_matching(str(target_desc), alias_db)
         if source_canonical == target_canonical:
             desc_score = 1.0
         else:
@@ -247,12 +278,12 @@ def classify_confidence_tier(confidence: float) -> ConfidenceTier:
         return ConfidenceTier.NONE
 
 
-def calculate_reason(source: pd.Series, target: pd.Series) -> str:
+def calculate_reason(source: Any, target: Any) -> str:
     """Generate human-readable explanation of match quality.
 
     Args:
-        source: Source record
-        target: Target record
+        source: Source record (Series or namedtuple from itertuples)
+        target: Target record (Series or namedtuple from itertuples)
 
     Returns:
         Human-readable reason string
@@ -260,15 +291,19 @@ def calculate_reason(source: pd.Series, target: pd.Series) -> str:
     reasons = []
 
     # Amount match
-    if pd.notna(source["amount_clean"]) and pd.notna(target["amount_clean"]):
-        if abs(source["amount_clean"] - target["amount_clean"]) == 0:
+    source_amount = _get_row_field(source, "amount_clean")
+    target_amount = _get_row_field(target, "amount_clean")
+    if pd.notna(source_amount) and pd.notna(target_amount):
+        if abs(source_amount - target_amount) == 0:
             reasons.append("exact amount")
         else:
             reasons.append("different amount")
 
     # Date match
-    if pd.notna(source["date_clean"]) and pd.notna(target["date_clean"]):
-        days_diff = abs((source["date_clean"] - target["date_clean"]).days)
+    source_date = _get_row_field(source, "date_clean")
+    target_date = _get_row_field(target, "date_clean")
+    if pd.notna(source_date) and pd.notna(target_date):
+        days_diff = abs((source_date - target_date).days)
         if days_diff == 0:
             reasons.append("same date")
         elif days_diff <= 3:
@@ -277,10 +312,12 @@ def calculate_reason(source: pd.Series, target: pd.Series) -> str:
             reasons.append(f"{days_diff} days apart")
 
     # Description match
-    if pd.notna(source["description_clean"]) and pd.notna(target["description_clean"]):
-        source_desc = str(source["description_clean"])
-        target_desc = str(target["description_clean"])
-        similarity = fuzz.ratio(source_desc, target_desc)
+    source_desc = _get_row_field(source, "description_clean")
+    target_desc = _get_row_field(target, "description_clean")
+    if pd.notna(source_desc) and pd.notna(target_desc):
+        source_desc_str = str(source_desc)
+        target_desc_str = str(target_desc)
+        similarity = fuzz.ratio(source_desc_str, target_desc_str)
         if similarity >= 95:
             reasons.append("nearly identical description")
         elif similarity >= 80:
@@ -312,6 +349,9 @@ def find_matches(
     - Processes highest confidence matches first
     - Tracks matched target indices to prevent reuse
 
+    Performance optimization: Pre-calculates vectorized amount bounds (±amount_tolerance)
+    to skip expensive fuzzy matching for pairs where amount difference exceeds tolerance.
+
     Args:
         source_df: Normalized source DataFrame
         target_df: Normalized target DataFrame
@@ -325,28 +365,117 @@ def find_matches(
     matches: list[Match] = []
     matched_targets: set[int] = set()  # Critical: track used targets
 
+    # Early return for empty DataFrames or missing columns
+    if len(source_df) == 0 or len(target_df) == 0:
+        return MatchResult(matches=[], missing_in_target=[], missing_in_source=[])
+
+    if "amount_clean" not in source_df.columns or "amount_clean" not in target_df.columns:
+        return MatchResult(matches=[], missing_in_target=[], missing_in_source=[])
+
+    # Pre-calculate vectorized amount bounds for early-exit optimization
+    # This avoids expensive fuzzy matching for pairs with wildly different amounts
+    # Convert Decimal to float for numpy vectorized operations
+    source_amounts = source_df["amount_clean"].astype(float).values
+    tolerance = float(config.amount_tolerance)
+    # Calculate bounds and ensure lower <= upper (handles negative amounts correctly)
+    lower_bound = source_amounts * (1 - tolerance)
+    upper_bound = source_amounts * (1 + tolerance)
+    source_amount_lower = np.minimum(lower_bound, upper_bound)
+    source_amount_upper = np.maximum(lower_bound, upper_bound)
+
+    # Vectorized filtering: Pre-filter target DataFrame to only include rows
+    # that could potentially match based on amount tolerance
+    # This significantly reduces the inner loop size
+    global_source_min = float(source_amounts.min())
+    global_source_max = float(source_amounts.max())
+    # Calculate global bounds (accounting for tolerance)
+    global_lower = min(global_source_min * (1 - tolerance), global_source_min * (1 + tolerance))
+    global_upper = max(global_source_max * (1 - tolerance), global_source_max * (1 + tolerance))
+
+    # Filter targets to only those within the global amount range
+    target_amounts = target_df["amount_clean"].astype(float).values
+    target_mask = (target_amounts >= global_lower) & (target_amounts <= global_upper)
+    filtered_target_df = target_df[target_mask].copy()
+    filtered_to_original_indices = np.where(target_mask)[0].tolist()
+
+    # If no targets pass the amount filter, return early
+    if len(filtered_target_df) == 0:
+        return MatchResult(
+            matches=[],
+            missing_in_target=list(range(len(source_df))),
+            missing_in_source=list(range(len(target_df))),
+        )
+
+    # OPTIMIZATION: Pre-compute canonical descriptions to avoid repeated alias DB queries
+    # and string normalization in the nested loop
+    source_canonical_descs = [
+        _description_for_matching(
+            str(row.description_clean) if pd.notna(row.description_clean) else "", alias_db
+        )
+        for row in source_df.itertuples(index=False)
+    ]
+    target_canonical_descs = [
+        _description_for_matching(
+            str(row.description_clean) if pd.notna(row.description_clean) else "", alias_db
+        )
+        for row in filtered_target_df.itertuples(index=False)
+    ]
+
     # Find best match for each source row
     best_matches_for_source: dict[int, tuple[float, int]] = {}
 
-    for source_idx, source_row in source_df.iterrows():
+    # Use itertuples() for faster iteration (returns namedtuples instead of Series)
+    # enumerate provides positional index which aligns with our pre-calculated bounds
+    for source_idx, source_row in enumerate(source_df.itertuples(index=False)):
         best_confidence = 0.0
         best_target_idx = -1
 
-        # Find the best target match for this source
-        for target_idx, target_row in target_df.iterrows():
-            # Calculate general confidence
-            confidence = calculate_confidence(source_row, target_row, config, alias_db=alias_db)
+        # Get pre-calculated amount bounds and canonical description for this source row
+        source_lower = source_amount_lower[source_idx]
+        source_upper = source_amount_upper[source_idx]
+        source_canonical = source_canonical_descs[source_idx]
+        source_first_two = (
+            _get_first_two_words(source_canonical) if len(source_canonical.split()) >= 2 else None
+        )
 
-            # Check for intelligent match (0.90 confidence) - use if higher
-            intelligent_confidence = _check_intelligent_match(
-                source_row, target_row, config, alias_db=alias_db
-            )
-            if intelligent_confidence is not None and intelligent_confidence > confidence:
+        # Find the best target match for this source (using filtered targets)
+        for filtered_idx, target_row in enumerate(filtered_target_df.itertuples(index=False)):
+            # Early-exit: Skip if target amount is outside tolerance range
+            target_amount = target_row.amount_clean
+            if pd.notna(target_amount) and (
+                target_amount < source_lower or target_amount > source_upper
+            ):
+                continue
+
+            # OPTIMIZATION: Check intelligent match FIRST (cheaper than fuzzy matching)
+            # If intelligent match passes (0.90), skip expensive calculate_confidence
+            intelligent_confidence = None
+            source_amt = _get_row_field(source_row, "amount_clean")
+            target_amt = _get_row_field(target_row, "amount_clean")
+
+            # Intelligent match: exact amount + first two words match
+            if (
+                pd.notna(source_amt)
+                and pd.notna(target_amt)
+                and source_amt == target_amt
+                and source_first_two is not None
+            ):
+                target_canonical = target_canonical_descs[filtered_idx]
+                if len(target_canonical.split()) >= 2:
+                    target_first_two = _get_first_two_words(target_canonical)
+                    if source_first_two == target_first_two:
+                        intelligent_confidence = 0.90
+
+            # Use intelligent match if found, otherwise calculate full confidence
+            if intelligent_confidence is not None:
                 confidence = intelligent_confidence
+            else:
+                confidence = calculate_confidence(source_row, target_row, config, alias_db=alias_db)
 
             if confidence > best_confidence:
                 best_confidence = confidence
-                best_target_idx = int(target_idx)
+                # Store original target index, not filtered index
+                best_target_idx = int(filtered_to_original_indices[filtered_idx])
 
         # Store if above minimum threshold
         if best_confidence >= min_confidence and best_target_idx >= 0:

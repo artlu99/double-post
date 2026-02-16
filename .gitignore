@@ -31,10 +31,9 @@ dmypy.json
 .ruff_cache/
 
 # Double Post user data (don't commit personal financial data)
-data/inputs/
-data/outputs/
-*.csv
-*.CSV
+**/*.db
+**/*.csv
+**/*.CSV
 !data/examples/*.csv
 !tests/fixtures/*.csv
 

@@ -11,7 +11,7 @@ import pandas as pd
 
 from src.aliases import AliasDatabase
 from src.matcher import calculate_confidence, create_manual_match, find_matches
-from src.models import MatchConfig, MatchResult
+from src.models import MatchConfig
 
 
 def demo_merchant_aliases():
@@ -129,7 +129,7 @@ def demo_manual_matching():
 
     if result.matches:
         match = result.matches[0]
-        print(f"\n  Match:")
+        print("\n  Match:")
         print(f"    Source: {source_df.iloc[match.source_idx]['description_clean']}")
         print(f"    Target: {target_df.iloc[match.target_idx]['description_clean']}")
         print(f"    Confidence: {match.confidence:.2f}")
@@ -146,7 +146,7 @@ def demo_manual_matching():
             target_df,
         )
 
-        print(f"  Created manual match:")
+        print("  Created manual match:")
         print(f"    Source: {source_df.iloc[manual_match.source_idx]['description_clean']}")
         print(f"    Target: {target_df.iloc[manual_match.target_idx]['description_clean']}")
         print(f"    Confidence: {manual_match.confidence:.2f}")

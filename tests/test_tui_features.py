@@ -3,12 +3,7 @@
 Tests core functionality of TUI features without requiring Textual framework.
 """
 
-from datetime import datetime
-from decimal import Decimal
-
-import pandas as pd
-
-from src.models import Match, MatchDecision, MatchResult
+from src.models import Match, MatchDecision
 
 
 class TestMatchFiltering:

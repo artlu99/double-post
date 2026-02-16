@@ -10,11 +10,10 @@ from datetime import datetime
 from decimal import Decimal
 
 import pandas as pd
-import pytest
 
-from src.models import ConfidenceTier, MatchDecision, Match
+from src.models import ConfidenceTier, MatchDecision
 from src.tui import display_utils
-from src.tui.screens import MatchState, MatchReviewScreen, MissingItemsScreen, SummaryScreen
+from src.tui.screens import MatchReviewScreen, MatchState, MissingItemsScreen, SummaryScreen
 from tests.factories import TestDataFactory
 
 

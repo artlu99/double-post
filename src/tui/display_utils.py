@@ -4,10 +4,11 @@ This module provides common formatting functions used across multiple
 TUI screen classes to eliminate code duplication.
 """
 
-from datetime import datetime
 from decimal import Decimal
 
 import pandas as pd
+
+from src.models import ConfidenceTier
 
 
 def format_date(date_val) -> str:
@@ -52,7 +53,7 @@ def truncate_string(s: str, max_len: int) -> str:
     return s[:max_len] + "..." if len(s) > max_len else s
 
 
-def get_tier_display(tier: "ConfidenceTier") -> tuple[str, str, str]:
+def get_tier_display(tier: ConfidenceTier) -> tuple[str, str, str]:
     """Get tier text, icon, and color markup for display.
 
     Args:
@@ -64,8 +65,6 @@ def get_tier_display(tier: "ConfidenceTier") -> tuple[str, str, str]:
         - icon: Symbol representing tier ("⭐", "○", "—")
         - color_markup: Textual markup color ("bold green", "yellow", etc.)
     """
-    from src.models import ConfidenceTier
-
     tier_map = {
         ConfidenceTier.HIGH: ("HIGH", "⭐", "bold green"),
         ConfidenceTier.MEDIUM: ("MED", "○", "yellow"),

@@ -3,11 +3,9 @@
 Tests for infer_date_format, standardize_amount, and other edge cases.
 """
 
-from datetime import datetime
 from decimal import Decimal
 
 import pandas as pd
-import pytest
 
 from src.csv_loader import infer_date_format, standardize_amount
 from src.models import ColumnMapping

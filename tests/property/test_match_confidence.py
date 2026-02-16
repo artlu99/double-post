@@ -8,7 +8,8 @@ from decimal import Decimal
 
 import pandas as pd
 import pytest
-from hypothesis import given, strategies as st
+from hypothesis import given
+from hypothesis import strategies as st
 from hypothesis.strategies import composite
 
 from src.matcher import calculate_confidence

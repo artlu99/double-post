@@ -3,7 +3,7 @@
 from dataclasses import dataclass, field
 from datetime import datetime
 from decimal import Decimal
-from enum import Enum
+from enum import Enum, StrEnum
 from typing import Any, Literal
 
 
@@ -38,7 +38,7 @@ class MatchDecision(Enum):
     REJECTED = "rejected"
 
 
-class ConfidenceTier(str, Enum):
+class ConfidenceTier(StrEnum):
     """Confidence tier classification for matches."""
 
     HIGH = "high"  # ≥ 0.9
@@ -111,12 +111,14 @@ class MatchConfig:
     Attributes:
         threshold: Minimum confidence score for auto-accept
         date_window_days: Maximum days apart for date matching
-        amount_tolerance: Tolerance for amount comparison
+        amount_tolerance: Tolerance for amount early-exit (default 10%).
+            Pairs with amount difference exceeding this percent are skipped
+            without expensive fuzzy matching calculation.
     """
 
     threshold: float = 0.7
     date_window_days: int = 3
-    amount_tolerance: Decimal = Decimal("0.01")
+    amount_tolerance: Decimal = Decimal("0.10")  # 10% default for early-exit
 
 
 @dataclass

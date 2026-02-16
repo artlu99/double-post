@@ -3,12 +3,10 @@
 from datetime import datetime
 
 import pandas as pd
-import pytest
-from textual.widgets import DataTable
 
-from src.matcher import Match, MatchResult, ConfidenceTier
+from src.matcher import ConfidenceTier, Match, MatchResult
 from src.models import MatchDecision
-from src.tui.screens import MatchState, MatchReviewScreen
+from src.tui.screens import MatchReviewScreen, MatchState
 
 
 class TestManualMatchSelection:

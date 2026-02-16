@@ -7,9 +7,8 @@ from datetime import datetime
 from decimal import Decimal
 
 import pandas as pd
-import pytest
 
-from src.matcher import calculate_confidence, calculate_reason, find_matches
+from src.matcher import calculate_reason, find_matches
 from src.models import MatchConfig, MatchResult
 from tests.factories import TestDataFactory
 

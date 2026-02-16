@@ -4,7 +4,6 @@ from datetime import datetime
 from decimal import Decimal
 
 import pandas as pd
-import pytest
 
 from src.matcher import normalize_sign_conventions
 

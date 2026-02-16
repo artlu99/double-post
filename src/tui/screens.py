@@ -1,11 +1,9 @@
 """TUI screens for Double Post."""
 
 from dataclasses import dataclass
-from decimal import Decimal
 from typing import Literal
 
 import pandas as pd
-from textual.containers import Horizontal, Vertical
 from textual.screen import Screen
 from textual.widgets import DataTable, Footer, Header, Static
 
@@ -234,7 +232,7 @@ class MatchReviewScreen(Screen):
         matches = self.match_state.get_filtered_and_sorted_matches()
 
         # Add matched rows
-        for i, match in enumerate(matches):
+        for _i, match in enumerate(matches):
             source_row = self.source_df.iloc[match.source_idx]
 
             # Get target description and amount if matched
@@ -305,9 +303,8 @@ class MatchReviewScreen(Screen):
         matches = self.match_state.get_filtered_and_sorted_matches()
 
         # Only update if cursor is within the matches range (not in unmatched section)
-        if 0 <= cursor_row < len(matches):
-            if self.match_state.selected_match_idx != cursor_row:
-                self.match_state.selected_match_idx = cursor_row
+        if 0 <= cursor_row < len(matches) and self.match_state.selected_match_idx != cursor_row:
+            self.match_state.selected_match_idx = cursor_row
 
     def _get_decision_icon(self, decision: MatchDecision) -> str:
         """Get icon for decision status."""

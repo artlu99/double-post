@@ -10,8 +10,8 @@ import typer
 
 from src.aliases import AliasDatabase, seed_defaults
 from src.csv_loader import load_csv
-from src.models import ConfidenceTier
 from src.matcher import MatchConfig, find_matches, normalize_sign_conventions
+from src.models import ConfidenceTier
 
 
 def reconcile(
@@ -81,7 +81,7 @@ def reconcile(
         and target_debit_sign != "debit_col"
     ):
         typer.echo(
-            f"\nNormalizing signs: Target uses opposite sign convention, flipping amounts to match source"
+            "\nNormalizing signs: Target uses opposite sign convention, flipping amounts to match source"
         )
         source_df, target_df = normalize_sign_conventions(
             source_df, target_df, source_convention, target_convention

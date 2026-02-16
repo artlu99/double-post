@@ -3,15 +3,9 @@
 Tests the main reconcile() function in src/main.py.
 """
 
-from decimal import Decimal
 from pathlib import Path
 
-import pandas as pd
-import pytest
 from typer.testing import CliRunner
-
-from src.models import MatchDecision
-from tests.factories import TestDataFactory
 
 
 class TestCLIReconcileCommand:

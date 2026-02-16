@@ -324,10 +324,7 @@ def load_csv(
 
     # Infer date format from the date column
     date_col = mapping.date or "date"
-    if date_col in df.columns:
-        date_hints = infer_date_format(df[date_col])
-    else:
-        date_hints = {}
+    date_hints = infer_date_format(df[date_col]) if date_col in df.columns else {}
 
     # Normalize DataFrame
     normalized = normalize_dataframe(df, mapping, date_hints)

@@ -3,7 +3,6 @@
 from pathlib import Path
 
 import pandas as pd
-import pytest
 
 from src.models import MatchDecision
 from src.tui.app import DoublePostApp, run_tui

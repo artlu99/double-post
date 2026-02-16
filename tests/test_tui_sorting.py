@@ -3,7 +3,6 @@
 from datetime import datetime
 
 import pandas as pd
-import pytest
 
 from src.models import ConfidenceTier, MatchDecision
 from src.tui.screens import MatchState
@@ -368,8 +367,8 @@ class TestSingleTableDisplay:
 
     def test_match_info_column_content(self):
         """Test that match info column shows target and confidence."""
-        from src.tui.screens import MatchReviewScreen
         from src.matcher import Match, MatchResult
+        from src.tui.screens import MatchReviewScreen
 
         source_df = pd.DataFrame(
             [
@@ -415,8 +414,8 @@ class TestSingleTableDisplay:
 
     def test_match_info_for_unmatched(self):
         """Test that match info shows appropriate message for unmatched records."""
-        from src.tui.screens import MatchReviewScreen
         from src.matcher import Match, MatchResult
+        from src.tui.screens import MatchReviewScreen
 
         source_df = pd.DataFrame(
             [

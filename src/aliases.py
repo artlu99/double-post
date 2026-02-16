@@ -3,11 +3,11 @@
 Stores and manages merchant name aliases to improve matching confidence.
 """
 
+import sqlite3
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
 
-import sqlite3
 from rapidfuzz import fuzz
 
 

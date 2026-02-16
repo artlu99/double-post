@@ -373,6 +373,7 @@ class TestConfidenceTierClassification:
         from src.models import ConfidenceTier
 
         # Create match with different amount and date (should be LOW tier)
+        # Use amounts within 10% tolerance to allow matching (early-exit optimization)
         source_df = pd.DataFrame(
             [
                 {
@@ -386,7 +387,7 @@ class TestConfidenceTierClassification:
             [
                 {
                     "date_clean": datetime(2024, 1, 20),  # Different date (5 days)
-                    "amount_clean": Decimal("100.00"),  # Different amount
+                    "amount_clean": Decimal("15.00"),  # Within 10% tolerance
                     "description_clean": "something else",  # Different description
                 }
             ]
@@ -433,7 +434,6 @@ class TestConfidenceTierClassification:
 
     def test_best_match_for_each_source(self):
         """Test that each source row gets its best target match."""
-        from src.models import MatchDecision
 
         source_df = pd.DataFrame(
             [
@@ -651,7 +651,6 @@ class TestIntelligentMatching:
 
     def test_first_two_words_dont_match(self):
         """Test that different first two words don't trigger intelligent matching."""
-        from src.models import ConfidenceTier
 
         # Source: "Coffee Shop" vs Target: "Tea House" - different first two words
         source_df = pd.DataFrame(

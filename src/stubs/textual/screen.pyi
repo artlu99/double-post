@@ -4,11 +4,10 @@ This stub file provides type hints for Textual's Screen class
 to improve type safety in the Double Post codebase.
 """
 
-from typing import Any, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
     from textual.app import App
-    from textual.widgets import Widget
 
 class Screen:
     """A screen in the Textual TUI framework.
@@ -17,9 +16,9 @@ class Screen:
     """
 
     # The app that owns this screen
-    app: "App[Any]"
+    app: App[Any]
 
-    def push_screen(self, screen: "Screen") -> None:
+    def push_screen(self, screen: Screen) -> None:
         """Push a new screen onto the screen stack.
 
         Args:
