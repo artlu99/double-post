@@ -50,8 +50,8 @@ def detect_column_mapping(df: pd.DataFrame, _source_type: str | None) -> ColumnM
             return columns[matches[2]]
         return None
 
-    # Detect date column (prefer Post Date over Transaction Date)
-    date_col = find_column(["post date", "transaction date", "date", "dt", "trans date"])
+    # Detect date column (prefer Transaction Date over Post Date)
+    date_col = find_column(["transaction date", "date", "dt", "trans date", "post date"])
 
     # Detect amount-related columns
     amount_col = find_column(["amount", "amt", "usd"])
