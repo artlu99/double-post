@@ -52,6 +52,8 @@ u  Unmatched s  Summary  q  Quit
 
 **Required columns**: Date, Amount, Description (fuzzy-matched, variations recognized)
 
+**Supported formats**: Chase (Debit/Credit columns), Generic (single Amount column), Gemini (Google card: Transaction Post Date, Description of Transaction, Amount)
+
 **Optional**: `reconciled` column (set `true`/`True` to skip already-matched records)
 
 **Sign conventions**: Auto-detected. For credit cards, assumes debits (purchases) > credits (payments).

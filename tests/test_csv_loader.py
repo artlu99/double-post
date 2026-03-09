@@ -42,6 +42,26 @@ class TestColumnMappingDetection:
         assert mapping.amount is not None
         assert mapping.description is not None
 
+    def test_detect_gemini_format(self):
+        """Test Gemini/Google card format detection (Transaction Post Date, Description of Transaction)."""
+        import pandas as pd
+
+        df = pd.DataFrame(
+            {
+                "Reference Number": ["123"],
+                "Transaction Post Date": ["03/08/26"],
+                "Description of Transaction": ["Test Merchant"],
+                "Transaction Type": ["clearing"],
+                "Amount": [26.1],
+            }
+        )
+        mapping = detect_column_mapping(df, None)
+
+        assert mapping.format_type == "gemini"
+        assert mapping.date == "Transaction Post Date"
+        assert mapping.description == "Description of Transaction"
+        assert mapping.amount == "Amount"
+
 
 class TestDateFormatInference:
     """Tests for date format auto-detection (Mitigation #4)."""
@@ -246,7 +266,7 @@ class TestSignConventionDetection:
 
         assert convention["debit_sign"] == "negative"
         assert convention["credit_sign"] == "positive"
-        assert convention["negative_count"] > convention["positive_count"]
+        assert int(convention["negative_count"]) > int(convention["positive_count"])
 
     def test_detect_positive_expenses(self, fixtures_dir: Path):
         """Test detection when expenses are positive (like amex_signed.csv)."""
@@ -261,7 +281,7 @@ class TestSignConventionDetection:
 
         assert convention["debit_sign"] == "positive"
         assert convention["credit_sign"] == "negative"
-        assert convention["positive_count"] > convention["negative_count"]
+        assert int(convention["positive_count"]) > int(convention["negative_count"])
 
     def test_detect_chase_format(self, fixtures_dir: Path):
         """Test detection for Chase format with Debit/Credit columns."""
@@ -275,7 +295,7 @@ class TestSignConventionDetection:
 
         assert convention["debit_sign"] == "debit_col"
         assert convention["credit_sign"] == "credit_col"
-        assert convention["debit_count"] > convention["credit_count"]
+        assert int(convention["debit_count"]) > int(convention["credit_count"])
 
     def test_sign_convention_with_mixed_data(self):
         """Test detection with mixed positive/negative amounts."""

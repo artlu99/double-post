@@ -33,38 +33,64 @@ def detect_column_mapping(df: pd.DataFrame, _source_type: str | None) -> ColumnM
     column_lower = [col.lower() for col in columns]
 
     # Fuzzy match for key columns
-    def find_column(keywords: list[str]) -> str | None:
-        # First try exact match
+    def find_column(
+        keywords: list[str],
+        *,
+        substring_ok: bool = True,
+        fuzzy_ok: bool = True,
+    ) -> str | None:
+        # First try exact match (keyword equals column name)
         for keyword in keywords:
             if keyword in column_lower:
                 idx = column_lower.index(keyword)
                 return columns[idx]
-        # Then try fuzzy match with lower cutoff
-        matches = process.extractOne(
-            keywords,
-            column_lower,
-            scorer=fuzz.WRatio,
-            score_cutoff=60,  # Lowered from 80 for better matching
-        )
-        if matches:
-            return columns[matches[2]]
+        # Then try substring match (e.g. "date" in "transaction post date")
+        # Skip for debit/credit to avoid false matches (e.g. "debit" in "descript")
+        if substring_ok:
+            for keyword in keywords:
+                for i, col in enumerate(column_lower):
+                    if keyword in col:
+                        return columns[i]
+        # Then try fuzzy match (skip for debit/credit - avoid "debit"→"descript", "credit"→"dt")
+        if fuzzy_ok:
+            for keyword in keywords:
+                matches = process.extractOne(
+                    keyword,
+                    column_lower,
+                    scorer=fuzz.WRatio,
+                    score_cutoff=60,
+                )
+                if matches:
+                    return columns[matches[2]]
         return None
 
     # Detect date column (prefer Transaction Date over Post Date)
-    date_col = find_column(["transaction date", "date", "dt", "trans date", "post date"])
+    # Include Gemini/Google card: "Transaction Post Date"
+    date_col = find_column(
+        ["transaction date", "transaction post date", "date", "dt", "trans date", "post date"]
+    )
 
     # Detect amount-related columns
     amount_col = find_column(["amount", "amt", "usd"])
-    debit_col = find_column(["debit"])
-    credit_col = find_column(["credit"])
+    debit_col = find_column(["debit"], substring_ok=False, fuzzy_ok=False)
+    credit_col = find_column(["credit"], substring_ok=False, fuzzy_ok=False)
 
     # Detect description column
-    desc_col = find_column(["description", "desc", "descript", "memo", "merchant"])
+    # Include Gemini/Google card: "Description of Transaction"
+    desc_col = find_column(
+        ["description", "description of transaction", "desc", "descript", "memo", "merchant"]
+    )
 
     # Determine format type
-    format_type: Literal["chase", "generic"]
+    format_type: Literal["chase", "generic", "gemini"]
     if debit_col and credit_col:
         format_type = "chase"
+    elif (
+        date_col == "Transaction Post Date"
+        and desc_col == "Description of Transaction"
+        and amount_col == "Amount"
+    ):
+        format_type = "gemini"
     else:
         format_type = "generic"
 
@@ -166,7 +192,7 @@ def standardize_amount(row: pd.Series, mapping: ColumnMapping) -> Decimal | None
 
             return credit - debit  # Credit positive → income, Debit positive → expense (negative)
 
-        else:  # generic
+        else:  # generic or gemini (single amount column)
             # Generic: Signed amount column (may have negative for expenses)
             amount_val = row.get(mapping.amount)
             if pd.isna(amount_val):
@@ -228,7 +254,7 @@ def detect_sign_convention(df: pd.DataFrame, mapping: ColumnMapping) -> dict[str
         result["negative_count"] = int(debit_count)
 
     else:
-        # Generic format: Count positive and negative amounts
+        # Generic/Gemini format: Count positive and negative amounts
         amount_col = mapping.amount or "amount"
 
         if amount_col not in df.columns:

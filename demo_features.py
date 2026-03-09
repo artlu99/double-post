@@ -130,8 +130,9 @@ def demo_manual_matching():
     if result.matches:
         match = result.matches[0]
         print("\n  Match:")
-        print(f"    Source: {source_df.iloc[match.source_idx]['description_clean']}")
-        print(f"    Target: {target_df.iloc[match.target_idx]['description_clean']}")
+        print(f"    Source: {source_df.at[match.source_idx, 'description_clean']}")
+        assert match.target_idx is not None
+        print(f"    Target: {target_df.at[match.target_idx, 'description_clean']}")
         print(f"    Confidence: {match.confidence:.2f}")
         print(f"    Reason: {match.reason}")
         print(f"    Manual: {match.manual}")
@@ -147,8 +148,9 @@ def demo_manual_matching():
         )
 
         print("  Created manual match:")
-        print(f"    Source: {source_df.iloc[manual_match.source_idx]['description_clean']}")
-        print(f"    Target: {target_df.iloc[manual_match.target_idx]['description_clean']}")
+        print(f"    Source: {source_df.at[manual_match.source_idx, 'description_clean']}")
+        assert manual_match.target_idx is not None
+        print(f"    Target: {target_df.at[manual_match.target_idx, 'description_clean']}")
         print(f"    Confidence: {manual_match.confidence:.2f}")
         print(f"    Reason: {manual_match.reason}")
         print(f"    Manual: {manual_match.manual}")

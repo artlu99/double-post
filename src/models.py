@@ -27,7 +27,7 @@ class ColumnMapping:
     debit: str | None
     credit: str | None
     type: str | None
-    format_type: Literal["chase", "generic"]
+    format_type: Literal["chase", "generic", "gemini"]
 
 
 class MatchDecision(Enum):
