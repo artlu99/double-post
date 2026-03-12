@@ -130,6 +130,12 @@ def reconcile(
                     f"Filtered {filtered_count} target records dated after {cutoff_date.strftime('%Y-%m-%d')} (latest source date + 1 day)"
                 )
 
+    # Sort both DataFrames by date ascending so duplicate matches (e.g. MTA) pair chronologically
+    if "date_clean" in source_df.columns:
+        source_df = source_df.sort_values("date_clean", ascending=True).reset_index(drop=True)
+    if "date_clean" in target_df.columns:
+        target_df = target_df.sort_values("date_clean", ascending=True).reset_index(drop=True)
+
     # Run matching
     config = MatchConfig(threshold=0.7, date_window_days=date_window)
 
