@@ -506,66 +506,6 @@ def find_matches(
         matches=matches,
         missing_in_target=missing_in_target,
         missing_in_source=missing_in_source,
-        duplicate_matches=[],
-    )
-
-
-def create_manual_match(
-    source_idx: int,
-    target_idx: int,
-    source_df: pd.DataFrame,
-    target_df: pd.DataFrame,
-) -> Match:
-    """Create a manual match between a source and target record.
-
-    This allows users to manually link records that the auto-matching
-    algorithm missed. Confidence is still calculated based on the data.
-
-    Args:
-        source_idx: Index in source DataFrame
-        target_idx: Index in target DataFrame
-        source_df: Source DataFrame
-        target_df: Target DataFrame
-
-    Returns:
-        Match object with calculated confidence and manual flag set to True
-
-    Raises:
-        IndexError: If source_idx or target_idx is out of range
-    """
-    # Validate indices
-    if source_idx < 0 or source_idx >= len(source_df):
-        raise IndexError(
-            f"Source index {source_idx} out of range for DataFrame with {len(source_df)} rows"
-        )
-    if target_idx < 0 or target_idx >= len(target_df):
-        raise IndexError(
-            f"Target index {target_idx} out of range for DataFrame with {len(target_df)} rows"
-        )
-
-    # Get the records
-    source_row = source_df.iloc[source_idx]
-    target_row = target_df.iloc[target_idx]
-
-    # Calculate confidence using existing logic
-    config = MatchConfig()
-    confidence = calculate_confidence(source_row, target_row, config)
-
-    # Classify tier and set decision
-    tier = classify_confidence_tier(confidence)
-
-    # Generate reason
-    reason = calculate_reason(source_row, target_row)
-    reason = f"Manual match: {reason}"
-
-    # Create match with manual flag and tier
-    return Match(
-        source_idx=source_idx,
-        target_idx=target_idx,
-        confidence=confidence,
-        reason=reason,
-        manual=True,
-        tier=tier,
     )
 
 
@@ -577,6 +517,5 @@ __all__ = [
     "calculate_reason",
     "classify_confidence_tier",
     "find_matches",
-    "create_manual_match",
     "normalize_sign_conventions",
 ]

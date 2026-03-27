@@ -50,7 +50,7 @@ class TestSortModes:
             ),
         ]
 
-        result = MatchResult(matches=matches, missing_in_target=[], duplicate_matches=[])
+        result = MatchResult(matches=matches, missing_in_target=[])
         state = MatchState(match_result=result, sort_mode="status")
 
         # Sort by status: pending first, then rejected, then accepted
@@ -96,7 +96,7 @@ class TestSortModes:
             ),
         ]
 
-        result = MatchResult(matches=matches, missing_in_target=[], duplicate_matches=[])
+        result = MatchResult(matches=matches, missing_in_target=[])
         state = MatchState(match_result=result, sort_mode="confidence")
 
         sorted_matches = state.get_sorted_matches()
@@ -157,7 +157,7 @@ class TestSortModes:
             ),
         ]
 
-        result = MatchResult(matches=matches, missing_in_target=[], duplicate_matches=[])
+        result = MatchResult(matches=matches, missing_in_target=[])
         state = MatchState(match_result=result, sort_mode="date", source_df=source_df)
 
         sorted_matches = state.get_sorted_matches()
@@ -171,7 +171,7 @@ class TestSortModes:
         """Test that sort mode cycles through available modes."""
         from src.matcher import MatchResult
 
-        result = MatchResult(matches=[], missing_in_target=[], duplicate_matches=[])
+        result = MatchResult(matches=[], missing_in_target=[])
         state = MatchState(match_result=result, sort_mode="status")
 
         # Cycle through sort modes
@@ -214,7 +214,7 @@ class TestSortModes:
             ),
         ]
 
-        result = MatchResult(matches=matches, missing_in_target=[], duplicate_matches=[])
+        result = MatchResult(matches=matches, missing_in_target=[])
         state = MatchState(match_result=result, sort_mode="status")
 
         sorted_matches = state.get_sorted_matches()
@@ -255,7 +255,7 @@ class TestSortModes:
             ),
         ]
 
-        result = MatchResult(matches=matches, missing_in_target=[], duplicate_matches=[])
+        result = MatchResult(matches=matches, missing_in_target=[])
         state = MatchState(match_result=result, sort_mode="confidence", filter_mode="pending")
 
         # Get filtered and sorted matches
@@ -305,7 +305,6 @@ class TestSingleTableDisplay:
                 )
             ],
             missing_in_target=[],
-            duplicate_matches=[],
         )
 
         screen = MatchReviewScreen(source_df, target_df, result)
@@ -356,7 +355,6 @@ class TestSingleTableDisplay:
                 )
             ],
             missing_in_target=[],
-            duplicate_matches=[],
         )
 
         screen = MatchReviewScreen(source_df, target_df, result)
@@ -401,7 +399,6 @@ class TestSingleTableDisplay:
                 )
             ],
             missing_in_target=[],
-            duplicate_matches=[],
         )
 
         screen = MatchReviewScreen(source_df, target_df, result)
@@ -440,7 +437,6 @@ class TestSingleTableDisplay:
                 )
             ],
             missing_in_target=[0],
-            duplicate_matches=[],
         )
 
         screen = MatchReviewScreen(source_df, target_df, result)

@@ -31,7 +31,7 @@ class TestConfidenceCalculation:
             }
         )
 
-        config = MatchConfig(threshold=0.7, date_window_days=3)
+        config = MatchConfig(date_window_days=3)
         confidence = calculate_confidence(source, target, config)
 
         # Exact match should be near 1.0
@@ -54,7 +54,7 @@ class TestConfidenceCalculation:
             }
         )
 
-        config = MatchConfig(threshold=0.7, date_window_days=3)
+        config = MatchConfig(date_window_days=3)
         confidence = calculate_confidence(source, target, config)
 
         # Amount mismatch should significantly reduce confidence
@@ -77,7 +77,7 @@ class TestConfidenceCalculation:
             }
         )
 
-        config = MatchConfig(threshold=0.7, date_window_days=3)
+        config = MatchConfig(date_window_days=3)
         confidence = calculate_confidence(source, target, config)
 
         # Should still have good confidence
@@ -100,7 +100,7 @@ class TestConfidenceCalculation:
             }
         )
 
-        config = MatchConfig(threshold=0.7, date_window_days=3)
+        config = MatchConfig(date_window_days=3)
         confidence = calculate_confidence(source, target, config)
 
         # Similar descriptions should still match well
@@ -142,7 +142,7 @@ class TestDuplicatePrevention:
             ]
         )
 
-        config = MatchConfig(threshold=0.7, date_window_days=3)
+        config = MatchConfig(date_window_days=3)
         result = find_matches(source_df, target_df, config)
 
         # Should only match one source record, not both
@@ -179,7 +179,7 @@ class TestDuplicatePrevention:
             ]
         )
 
-        config = MatchConfig(threshold=0.7, date_window_days=3)
+        config = MatchConfig(date_window_days=3)
         result = find_matches(source_df, target_df, config)
 
         # Should match the first source (exact description) not second
@@ -223,9 +223,7 @@ class TestDuplicatePrevention:
         )
 
         config = MatchConfig()
-        result = find_matches(
-            source_df, target_df, config, min_confidence=0.1, alias_db=alias_db
-        )
+        result = find_matches(source_df, target_df, config, min_confidence=0.1, alias_db=alias_db)
 
         # All-pairs greedy: both sources should match both targets 1:1
         assert len(result.matches) == 2
@@ -299,16 +297,16 @@ class TestEndToEndMatching:
             ]
         )
 
-        config = MatchConfig(threshold=0.7, date_window_days=3)
+        config = MatchConfig(date_window_days=3)
         result = find_matches(source_df, target_df, config)
 
         # Should match 2, 1 missing
         assert len(result.matches) == 2
         assert len(result.missing_in_target) == 1
 
-        # Check that matched records are above threshold
+        # Check that matched records are above minimum confidence (default 0.1)
         for match in result.matches:
-            assert match.confidence >= config.threshold
+            assert match.confidence >= 0.1
 
 
 class TestConfidenceTierClassification:

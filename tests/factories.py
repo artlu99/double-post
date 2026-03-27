@@ -151,9 +151,7 @@ class TestDataFactory:
             ]
         if missing_in_target is None:
             missing_in_target = [2, 3]
-        return MatchResult(
-            matches=matches, missing_in_target=missing_in_target, duplicate_matches=[]
-        )
+        return MatchResult(matches=matches, missing_in_target=missing_in_target)
 
     @staticmethod
     def create_chase_csv_row(

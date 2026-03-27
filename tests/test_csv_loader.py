@@ -24,7 +24,7 @@ class TestColumnMappingDetection:
         import pandas as pd
 
         df = pd.read_csv(fixtures_dir / "chase.csv")
-        mapping = detect_column_mapping(df, None)
+        mapping = detect_column_mapping(df)
 
         assert mapping.format_type == "chase"
         assert mapping.debit is not None
@@ -36,7 +36,7 @@ class TestColumnMappingDetection:
         import pandas as pd
 
         df = pd.read_csv(fixtures_dir / "personal.csv")
-        mapping = detect_column_mapping(df, None)
+        mapping = detect_column_mapping(df)
 
         assert mapping.format_type == "generic"
         assert mapping.amount is not None
@@ -55,7 +55,7 @@ class TestColumnMappingDetection:
                 "Amount": [26.1],
             }
         )
-        mapping = detect_column_mapping(df, None)
+        mapping = detect_column_mapping(df)
 
         assert mapping.format_type == "gemini"
         assert mapping.date == "Transaction Post Date"
@@ -143,7 +143,6 @@ class TestAmountStandardization:
             description="Description",
             debit="Debit",
             credit="Credit",
-            type=None,
             format_type="chase",
         )
         row = pd.Series({"Debit": Decimal("15.99"), "Credit": None})
@@ -162,7 +161,6 @@ class TestAmountStandardization:
             description="Description",
             debit="Debit",
             credit="Credit",
-            type=None,
             format_type="chase",
         )
         row = pd.Series({"Debit": None, "Credit": Decimal("200.00")})
@@ -240,7 +238,6 @@ class TestCSVLoudAndNormalization:
             description="description",
             debit=None,
             credit=None,
-            type=None,
             format_type="generic",
         )
 
@@ -258,7 +255,7 @@ class TestSignConventionDetection:
         import pandas as pd
 
         df = pd.read_csv(fixtures_dir / "personal.csv")
-        mapping = detect_column_mapping(df, None)
+        mapping = detect_column_mapping(df)
 
         # personal.csv has mostly negative amounts (expenses)
         # So negative should be detected as DEBIT (expenses)
@@ -273,7 +270,7 @@ class TestSignConventionDetection:
         import pandas as pd
 
         df = pd.read_csv(fixtures_dir / "amex_signed.csv")
-        mapping = detect_column_mapping(df, None)
+        mapping = detect_column_mapping(df)
 
         # amex_signed.csv has mostly positive amounts (expenses/charges)
         # So positive should be detected as DEBIT (expenses)
@@ -288,7 +285,7 @@ class TestSignConventionDetection:
         import pandas as pd
 
         df = pd.read_csv(fixtures_dir / "chase.csv")
-        mapping = detect_column_mapping(df, None)
+        mapping = detect_column_mapping(df)
 
         # Chase: Debit column = expenses, Credit column = income/payments
         convention = detect_sign_convention(df, mapping)
@@ -315,7 +312,6 @@ class TestSignConventionDetection:
             description="description",
             debit=None,
             credit=None,
-            type=None,
             format_type="generic",
         )
 
@@ -344,7 +340,6 @@ class TestSignConventionDetection:
             description="description",
             debit=None,
             credit=None,
-            type=None,
             format_type="generic",
         )
 

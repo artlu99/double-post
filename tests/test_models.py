@@ -73,12 +73,10 @@ class TestMatchResult:
         result = MatchResult(
             matches=matches,
             missing_in_target=missing_in_target,
-            duplicate_matches=[],
         )
 
         assert len(result.matches) == 2
         assert len(result.missing_in_target) == 2
-        assert len(result.duplicate_matches) == 0
 
     def test_match_result_with_accepted_matches(self) -> None:
         """Test MatchResult contains matches with decisions."""
@@ -102,7 +100,6 @@ class TestMatchResult:
         result = MatchResult(
             matches=matches,
             missing_in_target=[],
-            duplicate_matches=[],
         )
 
         assert result.matches[0].decision == MatchDecision.ACCEPTED

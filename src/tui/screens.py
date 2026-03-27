@@ -44,8 +44,6 @@ class MatchState:
         Returns:
             Match object representing the missing record
         """
-        from src.matcher import Match
-
         return Match(
             source_idx=source_idx,
             target_idx=None,
@@ -137,7 +135,6 @@ class MatchReviewScreen(Screen):
         ("s", "show_summary", "Summary"),
         ("i", "show_missing", "Missing Items"),
         ("u", "show_unmatched_targets", "Unmatched Targets"),
-        ("m", "manual_match", "Manual Match"),
         ("a", "accept_match", "Accept Match"),
         ("r", "reject_match", "Reject Match"),
         ("f", "toggle_filter", "Filter"),
@@ -174,7 +171,7 @@ class MatchReviewScreen(Screen):
         yield Header()
         yield self._get_title_static()
         yield Static(
-            "[dim]↑↓: Navigate | a: Accept | r: Reject | m: Manual Match | f: Filter | t: Sort | i: Missing | u: Unmatched | s: Summary | q: Quit[/]",
+            "[dim]↑↓: Navigate | a: Accept | r: Reject | f: Filter | t: Sort | i: Missing | u: Unmatched | s: Summary | q: Quit[/]",
             id="help_text",
         )
         yield DataTable(id="matches_table")
@@ -381,43 +378,6 @@ class MatchReviewScreen(Screen):
         title = self.query_one("#review_title", Static)
         new_title = self._get_title_static()
         title.update(new_title.render())
-
-    def action_manual_match(self) -> None:
-        """Open manual match screen for the selected or missing source record.
-
-        If a match is selected, offers to rematch it to a different target.
-        If no match is selected, opens manual match for the first missing record.
-        """
-        from src.tui.manual_match_screen import ManualMatchScreen
-
-        # Sync cursor position before using selected_match_idx
-        self._sync_cursor_to_selected_idx()
-
-        # Determine which source index to manually match
-        # Priority: selected match, or first missing record
-        source_idx: int | None = None
-
-        filtered_matches = self.match_state.get_filtered_and_sorted_matches()
-        if 0 <= self.match_state.selected_match_idx < len(filtered_matches):
-            # Use the selected match's source index
-            source_idx = filtered_matches[self.match_state.selected_match_idx].source_idx
-        elif self.match_state.match_result.missing_in_target:
-            # Use the first missing record
-            source_idx = self.match_state.match_result.missing_in_target[0]
-
-        if source_idx is None:
-            self.app.notify("No source record available for manual matching", severity="warning")
-            return
-
-        # Push the manual match screen
-        self.app.push_screen(
-            ManualMatchScreen(
-                self.source_df,
-                self.target_df,
-                source_idx,
-                self.match_state.match_result,
-            )
-        )
 
     def action_show_summary(self) -> None:
         """Show the summary screen."""
@@ -659,10 +619,10 @@ class SummaryScreen(Screen):
         rejected = sum(1 for m in self.match_result.matches if m.decision == MatchDecision.REJECTED)
         pending = sum(1 for m in self.match_result.matches if m.decision == MatchDecision.PENDING)
 
-        # High confidence matches
-        high_conf = sum(1 for m in self.match_result.matches if m.confidence >= 0.8)
-        medium_conf = sum(1 for m in self.match_result.matches if 0.6 <= m.confidence < 0.8)
-        low_conf = sum(1 for m in self.match_result.matches if m.confidence < 0.6)
+        # Confidence distribution (using tier classification)
+        high_conf = sum(1 for m in self.match_result.matches if m.tier == ConfidenceTier.HIGH)
+        medium_conf = sum(1 for m in self.match_result.matches if m.tier == ConfidenceTier.MEDIUM)
+        low_conf = sum(1 for m in self.match_result.matches if m.tier == ConfidenceTier.LOW)
 
         summary = f"""[bold]
 ╭─────────────────────────────────────────────────────────╮
@@ -693,9 +653,9 @@ class SummaryScreen(Screen):
 
 [bold]Confidence Distribution[/bold]
   ┌─────────────────────────────────────────────────────┐
-  │ [green]High (≥0.8):     {high_conf:>6}[/]                              │
-  │ [yellow]Medium (0.6-0.8):{medium_conf:>6}[/]                              │
-  │ [red]Low (<0.6):      {low_conf:>6}[/]                              │
+  │ [green]High (≥0.9):     {high_conf:>6}[/]                              │
+  │ [yellow]Medium (0.5-0.9):{medium_conf:>6}[/]                              │
+  │ [red]Low (0.1-0.5):    {low_conf:>6}[/]                              │
   └─────────────────────────────────────────────────────┘
 
 [dim]Press ESC to go back, 'q' to quit[/dim]

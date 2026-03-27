@@ -137,10 +137,10 @@ def reconcile(
         target_df = target_df.sort_values("date_clean", ascending=True).reset_index(drop=True)
 
     # Run matching
-    config = MatchConfig(threshold=0.7, date_window_days=date_window)
+    config = MatchConfig(date_window_days=date_window)
 
     # Initialize alias database with defaults
-    alias_db_path = Path("data/aliases.db")
+    alias_db_path = Path("store/aliases.db")
     alias_db_path.parent.mkdir(parents=True, exist_ok=True)
     alias_db = AliasDatabase(alias_db_path)
     seed_defaults(alias_db)

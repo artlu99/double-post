@@ -34,7 +34,6 @@ dmypy.json
 **/*.db
 **/*.csv
 **/*.CSV
-!data/examples/*.csv
 !tests/fixtures/*.csv
 
 # Config files with user settings

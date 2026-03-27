@@ -16,15 +16,14 @@ from rapidfuzz import fuzz, process
 from src.models import ColumnMapping
 
 
-def detect_column_mapping(df: pd.DataFrame, _source_type: str | None) -> ColumnMapping:
+def detect_column_mapping(df: pd.DataFrame) -> ColumnMapping:
     """Detect column mappings and bank format type.
 
     Uses fuzzy matching to identify columns for date, amount, and description.
-    Detects Chase, Amex, or generic format based on column patterns.
+    Detects Chase or generic format based on column patterns.
 
     Args:
         df: DataFrame to analyze
-        source_type: Optional hint about source type
 
     Returns:
         ColumnMapping with detected format and column names
@@ -100,7 +99,6 @@ def detect_column_mapping(df: pd.DataFrame, _source_type: str | None) -> ColumnM
         description=desc_col,
         debit=debit_col,
         credit=credit_col,
-        type=None,
         format_type=format_type,
     )
 
@@ -325,13 +323,12 @@ def normalize_dataframe(df: pd.DataFrame, mapping: ColumnMapping, date_hints: di
 
 
 def load_csv(
-    path: Path, source_type: str | None = None
+    path: Path,
 ) -> tuple[pd.DataFrame, ColumnMapping, dict]:
     """Load and normalize a CSV file.
 
     Args:
         path: Path to CSV file
-        source_type: Optional hint about source type
 
     Returns:
         Tuple of (normalized DataFrame, column mapping, sign convention dict)
@@ -344,7 +341,7 @@ def load_csv(
         df = pd.read_csv(path, encoding="latin-1")
 
     # Detect column mapping
-    mapping = detect_column_mapping(df, source_type)
+    mapping = detect_column_mapping(df)
 
     # Detect sign convention (before normalization, on raw data)
     sign_convention = detect_sign_convention(df, mapping)

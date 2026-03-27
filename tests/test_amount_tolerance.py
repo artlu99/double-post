@@ -39,7 +39,7 @@ class TestAmountToleranceEarlyExit:
                 },
             ]
         )
-        config = MatchConfig(threshold=0.7, date_window_days=3)
+        config = MatchConfig(date_window_days=3)
 
         result = find_matches(source_df, target_df, config)
 
@@ -67,7 +67,7 @@ class TestAmountToleranceEarlyExit:
                 },
             ]
         )
-        config = MatchConfig(threshold=0.5, date_window_days=3)
+        config = MatchConfig(date_window_days=3)
 
         result = find_matches(source_df, target_df, config)
 
@@ -122,7 +122,7 @@ class TestAmountToleranceEarlyExit:
                 },
             ]
         )
-        config = MatchConfig(threshold=0.5)
+        config = MatchConfig()
 
         result = find_matches(source_df, target_df, config)
 
@@ -149,7 +149,7 @@ class TestAmountToleranceEarlyExit:
                 },
             ]
         )
-        config = MatchConfig(threshold=0.5)
+        config = MatchConfig()
 
         result = find_matches(source_df, target_df, config)
 
@@ -181,7 +181,7 @@ class TestAmountToleranceEarlyExit:
                 },
             ]
         )
-        config = MatchConfig(threshold=0.5)
+        config = MatchConfig()
 
         result = find_matches(source_df, target_df, config)
 
@@ -220,7 +220,7 @@ class TestAmountToleranceEarlyExit:
                 },
             ]
         )
-        config = MatchConfig(threshold=0.5)
+        config = MatchConfig()
 
         result = find_matches(source_df, target_df, config)
 
@@ -313,7 +313,7 @@ class TestAmountToleranceEdgeCases:
                 },
             ]
         )
-        config = MatchConfig(threshold=0.5)
+        config = MatchConfig()
 
         result = find_matches(source_df, target_df, config)
 
@@ -345,7 +345,7 @@ class TestAmountToleranceEdgeCases:
                 },
             ]
         )
-        config = MatchConfig(threshold=0.5)
+        config = MatchConfig()
 
         result = find_matches(source_df, target_df, config)
 
@@ -384,7 +384,7 @@ class TestAmountTolerancePerformance:
                 for i in range(1, 11)  # 10 targets at $10
             ]
         )
-        config = MatchConfig(threshold=0.5)
+        config = MatchConfig()
 
         result = find_matches(source_df, target_df, config)
 
@@ -422,7 +422,7 @@ class TestAmountTolerancePerformance:
                 },
             ]
         )
-        config = MatchConfig(threshold=0.5)
+        config = MatchConfig()
 
         result = find_matches(source_df, target_df, config)
 

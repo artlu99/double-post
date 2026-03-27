@@ -67,7 +67,6 @@ class TestStandardizeAmountEdgeCases:
             description=None,
             debit="Debit",
             credit="Credit",
-            type=None,
             format_type="chase",
         )
         row = pd.Series({"Debit": "100.00", "Credit": "50.00", "Description": "test"})
@@ -86,7 +85,6 @@ class TestStandardizeAmountEdgeCases:
             description=None,
             debit="Debit",
             credit="Credit",
-            type=None,
             format_type="chase",
         )
         row = pd.Series({"Debit": "0.00", "Credit": "0.00", "Description": "test"})
@@ -108,7 +106,6 @@ class TestStandardizeAmountEdgeCases:
             description=None,
             debit=None,
             credit=None,
-            type="Type",
             format_type="generic",  # Currently treated as generic
         )
 
@@ -134,7 +131,6 @@ class TestStandardizeAmountEdgeCases:
             description=None,
             debit=None,
             credit=None,
-            type="Type",
             format_type="generic",
         )
         row = pd.Series({"Amount": "100.00", "Type": "PURCHASE"})
@@ -152,7 +148,6 @@ class TestStandardizeAmountEdgeCases:
             description=None,
             debit=None,
             credit=None,
-            type=None,
             format_type="generic",
         )
 
@@ -175,7 +170,6 @@ class TestStandardizeAmountEdgeCases:
             description=None,
             debit=None,
             credit=None,
-            type=None,
             format_type="generic",
         )
         row = pd.Series({"amount": "1,234.56"})
@@ -193,7 +187,6 @@ class TestStandardizeAmountEdgeCases:
             description=None,
             debit=None,
             credit=None,
-            type=None,
             format_type="generic",
         )
         row = pd.Series({"amount": "  100.00  "})
@@ -210,7 +203,6 @@ class TestStandardizeAmountEdgeCases:
             description=None,
             debit=None,
             credit=None,
-            type=None,
             format_type="generic",
         )
         row = pd.Series({"amount": None})
@@ -232,7 +224,6 @@ class TestStandardizeAmountFormats:
             description=None,
             debit=None,
             credit=None,
-            type=None,
             format_type="generic",
         )
         row = pd.Series({"amount": "$100.00"})
@@ -249,7 +240,6 @@ class TestStandardizeAmountFormats:
             description=None,
             debit=None,
             credit=None,
-            type=None,
             format_type="generic",
         )
         row = pd.Series({"amount": "-50.00"})
@@ -266,7 +256,6 @@ class TestStandardizeAmountFormats:
             description=None,
             debit=None,
             credit=None,
-            type=None,
             format_type="generic",
         )
         row = pd.Series({"amount": "+50.00"})

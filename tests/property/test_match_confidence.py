@@ -55,7 +55,7 @@ class TestConfidenceCalculationProperties:
     def test_exact_match_has_high_confidence(self, pair) -> None:
         """Exact matches should always have high confidence."""
         source, target = pair
-        config = MatchConfig(threshold=0.7, date_window_days=3, amount_tolerance=Decimal("0.01"))
+        config = MatchConfig(date_window_days=3, amount_tolerance=Decimal("0.01"))
 
         confidence = calculate_confidence(source, target, config)
 

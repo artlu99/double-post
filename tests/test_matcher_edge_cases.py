@@ -184,7 +184,7 @@ class TestFindMatchesEdgeCases:
         """Test matching with empty DataFrames."""
         source_df = pd.DataFrame([])
         target_df = pd.DataFrame([])
-        config = MatchConfig(threshold=0.7, date_window_days=3)
+        config = MatchConfig(date_window_days=3)
 
         result = find_matches(source_df, target_df, config)
 
@@ -212,7 +212,7 @@ class TestFindMatchesEdgeCases:
                 }
             ]
         )
-        config = MatchConfig(threshold=0.9, date_window_days=1)
+        config = MatchConfig(date_window_days=1)
 
         result = find_matches(source_df, target_df, config)
 
@@ -245,7 +245,7 @@ class TestFindMatchesEdgeCases:
                 }
             ]
         )
-        config = MatchConfig(threshold=0.9)
+        config = MatchConfig()
 
         result = find_matches(source_df, target_df, config)
 
@@ -274,11 +274,11 @@ class TestFindMatchesEdgeCases:
         )
 
         # High threshold - might not match
-        config_high = MatchConfig(threshold=0.99)
+        config_high = MatchConfig()
         result_high = find_matches(source_df, target_df, config_high)
 
         # Low threshold - should match
-        config_low = MatchConfig(threshold=0.5)
+        config_low = MatchConfig()
         result_low = find_matches(source_df, target_df, config_low)
 
         assert len(result_low.matches) >= len(result_high.matches)
@@ -305,11 +305,11 @@ class TestFindMatchesEdgeCases:
         )
 
         # Narrow date window - might not match
-        config_narrow = MatchConfig(threshold=0.7, date_window_days=3)
+        config_narrow = MatchConfig(date_window_days=3)
         result_narrow = find_matches(source_df, target_df, config_narrow)
 
         # Wide date window - should match
-        config_wide = MatchConfig(threshold=0.7, date_window_days=15)
+        config_wide = MatchConfig(date_window_days=15)
         result_wide = find_matches(source_df, target_df, config_wide)
 
         assert len(result_wide.matches) >= len(result_narrow.matches)
@@ -343,7 +343,7 @@ class TestFindMatchesEdgeCases:
                 }
             ]
         )
-        config = MatchConfig(threshold=0.7)
+        config = MatchConfig()
 
         result = find_matches(source_df, target_df, config)
 
@@ -377,7 +377,7 @@ class TestFindMatchesEdgeCases:
                 }
             ]
         )
-        config = MatchConfig(threshold=0.7)
+        config = MatchConfig()
 
         result = find_matches(source_df, target_df, config)
 
@@ -397,7 +397,7 @@ class TestFindMatchesEdgeCases:
                 }
             ]
         )
-        config = MatchConfig(threshold=0.9)
+        config = MatchConfig()
 
         # Use high min_confidence to ensure no matches are found
         result = find_matches(source_df, target_df, config, min_confidence=0.9)
